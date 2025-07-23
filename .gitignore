@@ -28,6 +28,9 @@ obj/
 # Configuration files (local/dev)
 appsettings.Development.json
 appsettings.*.local.json
+appsettings.json
+appsettings.Development.json
+
 
 ########################
 # Secrets / Environment
