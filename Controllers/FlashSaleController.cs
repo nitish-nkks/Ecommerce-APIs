@@ -50,7 +50,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var now = DateTime.UtcNow;
+                var now = DateTime.Now;
 
                 var sales = _context.FlashSales
                     .Include(fs => fs.Product)
