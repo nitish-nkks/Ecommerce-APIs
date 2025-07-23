@@ -1,0 +1,66 @@
+########################
+# Build Results
+########################
+bin/
+obj/
+*.log
+[Ll]og/
+
+########################
+# User-Specific Files
+########################
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+########################
+# IDE/Editor Files
+########################
+.vscode/
+.vs/
+.idea/
+
+########################
+# ASP.NET Core Specific
+########################
+
+# Configuration files (local/dev)
+appsettings.Development.json
+appsettings.*.local.json
+
+########################
+# Secrets / Environment
+########################
+.env
+*.env
+
+########################
+# NuGet Packages
+########################
+*.nupkg
+*.snupkg
+packages/
+
+########################
+# Misc Files
+########################
+*.db
+*.sqlite
+*.mdb
+*.bak
+
+########################
+# System Files
+########################
+Thumbs.db
+ehthumbs.db
+.DS_Store
+desktop.ini
+
+########################
+# Test Artifacts
+########################
+TestResults/
+*.coverage
+*.coveragexml
