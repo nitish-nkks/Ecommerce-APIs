@@ -3,6 +3,7 @@ using Ecommerce_APIs.Models.DTOs.BlogPostDtos;
 using Ecommerce_APIs.Models.DTOs.ContactMessageDtos;
 using Ecommerce_APIs.Models.DTOs.FlashSaleDtos;
 using Ecommerce_APIs.Models.DTOs.StaticPageDtos;
+using Ecommerce_APIs.Models.DTOs.UserDtos;
 using Ecommerce_APIs.Models.Entites;
 
 namespace Ecommerce_APIs.Mappings
@@ -11,6 +12,10 @@ namespace Ecommerce_APIs.Mappings
     {
         public MappingProfile()
         {
+            CreateMap<AddUserDto, Users>();
+            CreateMap<UpdateUserDto, Users>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
             CreateMap<ContactMessage, ContactMessageDto>();
             CreateMap<ContactMessageCreateDto, ContactMessage>();
 

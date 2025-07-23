@@ -2,6 +2,7 @@
 using Ecommerce_APIs.Models.DTOs.OrderTrackingDtos;
 using Ecommerce_APIs.Models.Entites.Ecommerce_APIs.Models.Entities;
 using Ecommerce_APIs.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class OrderTrackingController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

@@ -1,9 +1,10 @@
-using Ecommerce_APIs.Data;
-using Ecommerce_APIs.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Mappings;
+using Ecommerce_APIs.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,7 +85,7 @@ builder.WebHost.UseSentry(o =>
 
 
 // AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 

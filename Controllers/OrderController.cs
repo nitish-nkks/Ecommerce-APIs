@@ -1,6 +1,7 @@
 ﻿using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.OrderDtos;
 using Ecommerce_APIs.Models.Entites;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;

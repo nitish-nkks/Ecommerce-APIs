@@ -2,12 +2,14 @@
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.ProductImageDtos;
 using Ecommerce_APIs.Models.Entites;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sentry;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 public class ProductImagesController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

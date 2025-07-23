@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Data;
+﻿using AutoMapper;
+using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.UserDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,14 @@ namespace Ecommerce_APIs.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
+        private readonly IMapper mapper;
 
-        public UsersController(ApplicationDbContext dbContext)
+
+        public UsersController(ApplicationDbContext dbContext,IMapper mapper)
         {
             this.dbContext = dbContext;
+            this.mapper = mapper;
+
         }
 
         [HttpPost]
@@ -23,16 +28,10 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var user = new Users
-                {
-                    FirstName = addUserDto.FirstName,
-                    LastName = addUserDto.LastName,
-                    Email = addUserDto.Email,
-                    PasswordHash = addUserDto.PasswordHash,
-                    Role = addUserDto.Role ?? UserRole.Customer,
-                    IsActive = addUserDto.IsActive ?? true,
-                    CreatedAt = DateTime.UtcNow
-                };
+                var user = mapper.Map<Users>(addUserDto);
+                user.Role = addUserDto.Role ?? UserRole.Customer;
+                user.IsActive = addUserDto.IsActive ?? true;
+                user.CreatedAt = DateTime.Now;
 
                 dbContext.userss.Add(user);
                 dbContext.SaveChanges();
@@ -56,6 +55,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
+        [Authorize]
         [HttpPatch("{id:int}")]
         public IActionResult UpdateUser([FromBody] UpdateUserDto updateUserDto, int id)
         {
@@ -72,12 +72,8 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
 
-                if (!string.IsNullOrWhiteSpace(updateUserDto.FirstName)) user.FirstName = updateUserDto.FirstName;
-                if (!string.IsNullOrWhiteSpace(updateUserDto.LastName)) user.LastName = updateUserDto.LastName;
-                if (!string.IsNullOrWhiteSpace(updateUserDto.Email)) user.Email = updateUserDto.Email;
-                if (!string.IsNullOrWhiteSpace(updateUserDto.PasswordHash)) user.PasswordHash = updateUserDto.PasswordHash;
-
-                user.UpdatedAt = DateTime.UtcNow;
+                mapper.Map(updateUserDto, user); 
+                user.UpdatedAt = DateTime.Now;
 
                 dbContext.userss.Update(user);
                 dbContext.SaveChanges();
