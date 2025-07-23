@@ -2,6 +2,7 @@
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.ContactMessageDtos;
 using Ecommerce_APIs.Models.Entites;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Sentry;
@@ -10,6 +11,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ContactMessageController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

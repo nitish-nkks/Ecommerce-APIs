@@ -2,6 +2,7 @@
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.StaticPageDtos;
 using Ecommerce_APIs.Models.Entites;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class StaticPagesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

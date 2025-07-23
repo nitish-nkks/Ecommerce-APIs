@@ -1,6 +1,7 @@
 ﻿using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.CatagoriesDtos;
 using Ecommerce_APIs.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sentry;
@@ -9,6 +10,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
