@@ -63,7 +63,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var page = _mapper.Map<StaticPage>(dto);
-                page.CreatedAt = DateTime.UtcNow;
+                page.CreatedAt = DateTime.Now;
                 _context.StaticPages.Add(page);
                 await _context.SaveChangesAsync();
 
@@ -87,7 +87,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Static page not found" });
 
                 _mapper.Map(dto, page);
-                page.UpdatedAt = DateTime.UtcNow;
+                page.UpdatedAt = DateTime.Now;
 
                 _context.Entry(page).State = EntityState.Modified;
                 await _context.SaveChangesAsync();

@@ -47,7 +47,7 @@ public class ProductImagesController : ControllerBase
                 ProductId = dto.ProductId,
                 ImageUrl = imageUrl,
                 IsPrimary = dto.IsPrimary,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             _context.ProductImages.Add(productImage);

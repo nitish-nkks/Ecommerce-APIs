@@ -46,7 +46,7 @@ namespace Ecommerce_APIs.Controllers
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Pending,
                     CreatedBy = dto.UserId,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
                     OrderItems = cartItems.Select(item => new OrderItem
                     {
                         ProductId = item.ProductId,

@@ -36,7 +36,7 @@ namespace Ecommerce_APIs.Controllers
                     TrackingId = dto.TrackingId,
                     Remarks = dto.Remarks,
                     CurrentStatus = TrackingStatus.Pending,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.Now,
                     IsActive = true
                 };
 
@@ -130,7 +130,7 @@ namespace Ecommerce_APIs.Controllers
                     return BadRequest(new { success = false, message = "Invalid status value" });
 
                 tracking.CurrentStatus = status;
-                tracking.UpdatedAt = DateTime.UtcNow;
+                tracking.UpdatedAt = DateTime.Now;
 
                 _context.Entry(tracking).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -155,7 +155,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Tracking not found" });
 
                 tracking.IsActive = false;
-                tracking.UpdatedAt = DateTime.UtcNow;
+                tracking.UpdatedAt = DateTime.Now;
 
                 _context.Entry(tracking).State = EntityState.Modified;
                 await _context.SaveChangesAsync();

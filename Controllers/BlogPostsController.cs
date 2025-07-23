@@ -68,7 +68,7 @@ namespace Ecommerce_APIs.Controllers
                     return BadRequest(new { success = false, message = "Invalid blog post data", data = ModelState });
 
                 var post = _mapper.Map<BlogPost>(dto);
-                post.CreatedAt = DateTime.UtcNow;
+                post.CreatedAt = DateTime.Now;
 
                 _context.BlogPosts.Add(post);
                 await _context.SaveChangesAsync();
@@ -93,7 +93,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Blog post not found" });
 
                 _mapper.Map(dto, post);
-                post.UpdatedAt = DateTime.UtcNow;
+                post.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, message = "Blog post updated successfully" });

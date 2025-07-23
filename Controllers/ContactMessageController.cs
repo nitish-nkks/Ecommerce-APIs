@@ -33,7 +33,7 @@ namespace Ecommerce_APIs.Controllers
 
                 var contact = _mapper.Map<ContactMessage>(dto);
                 contact.IsRead = false;
-                contact.CreatedAt = DateTime.UtcNow;
+                contact.CreatedAt = DateTime.Now;
 
                 _context.ContactMessages.Add(contact);
                 await _context.SaveChangesAsync();
