@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Data;
+﻿using AutoMapper;
+using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.ProductDtos;
 using Ecommerce_APIs.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -13,10 +14,12 @@ namespace Ecommerce_APIs.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper mapper;
 
-        public ProductsController(ApplicationDbContext context)
+        public ProductsController(ApplicationDbContext context,IMapper mapper)
         {
             _context = context;
+            this.mapper = mapper;
         }
 
         [HttpPost]
@@ -30,16 +33,8 @@ namespace Ecommerce_APIs.Controllers
                 if (!await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId))
                     return BadRequest(new { success = false, message = "Invalid category ID" });
 
-                var product = new Product
-                {
-                    Name = dto.Name,
-                    Description = dto.Description,
-                    Price = dto.Price,
-                    StockQuantity = dto.StockQuantity,
-                    CategoryId = dto.CategoryId,
-                    CreatedBy = dto.CreatedBy,
-                    CreatedAt = DateTime.Now
-                };
+                var product = mapper.Map<Product>(dto);
+                product.CreatedAt = DateTime.Now;
 
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
@@ -97,9 +92,6 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                if (id != dto.Id)
-                    return BadRequest(new { success = false, message = "ID mismatch" });
-
                 var product = await _context.Products.FindAsync(id);
                 if (product == null)
                     return NotFound(new { success = false, message = "Product not found" });
@@ -107,12 +99,7 @@ namespace Ecommerce_APIs.Controllers
                 if (!await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId))
                     return BadRequest(new { success = false, message = "Invalid category ID" });
 
-                product.Name = dto.Name;
-                product.Description = dto.Description;
-                product.Price = dto.Price;
-                product.StockQuantity = dto.StockQuantity;
-                product.CategoryId = dto.CategoryId;
-                product.UpdatedBy = dto.UpdatedBy;
+                mapper.Map(dto, product);
                 product.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();

@@ -4,9 +4,6 @@ namespace Ecommerce_APIs.Models.DTOs.ProductDtos
 {
     public class UpdateProductDto
     {
-        [Required]
-        public int Id { get; set; }
-
         [Required, MaxLength(200)]
         public string Name { get; set; }
 
