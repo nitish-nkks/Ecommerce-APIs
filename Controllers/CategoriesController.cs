@@ -114,7 +114,7 @@ namespace Ecommerce_APIs.Controllers
 
         // PUT: api/categories/5
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Category dto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
         {
             try
             {
