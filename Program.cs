@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//Pincode
+builder.Services.AddHttpClient<PincodeService>();
 
 // Configure EF Core
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
