@@ -1,4 +1,5 @@
 ﻿using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.Entites;
 using Ecommerce_APIs.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,7 @@ namespace Ecommerce_APIs.Controllers
             if (user == null)
                 return Unauthorized(new { message = "Invalid email or password" });
 
-            if (user.PasswordHash != request.Password)
+            if (!PasswordHasherHelper.VerifyPassword(user.PasswordHash, request.Password))
                 return Unauthorized(new { message = "Invalid email or password" });
 
             var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role.ToString());
