@@ -5,6 +5,7 @@ using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sentry;
+using Ecommerce_APIs.Helpers;
 
 namespace Ecommerce_APIs.Controllers
 {
@@ -29,6 +30,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var user = mapper.Map<Users>(addUserDto);
+                user.PasswordHash = PasswordHasherHelper.HashPassword(addUserDto.PasswordHash);
                 user.Role = addUserDto.Role ?? UserRole.Customer;
                 user.IsActive = addUserDto.IsActive ?? true;
                 user.CreatedAt = DateTime.Now;

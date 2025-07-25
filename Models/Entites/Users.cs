@@ -30,7 +30,7 @@ namespace Ecommerce_APIs.Models.Entites
         public required string Email { get; set; }
 
         [Required]
-        [MaxLength(25)]
+        [MaxLength(200)]
         [Column("password_hash")]
         public required string PasswordHash { get; set; }
 
