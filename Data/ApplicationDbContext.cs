@@ -27,6 +27,9 @@ namespace Ecommerce_APIs.Data
         public DbSet<StaticPage> StaticPages { get; set; }
         public DbSet<BlogPost> BlogPosts { get; set; }
         public DbSet<FlashSale> FlashSales { get; set; }
+        public DbSet<AllowedState> AllowedStates { get; set; }
+        public DbSet<AllowedCity> AllowedCities { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

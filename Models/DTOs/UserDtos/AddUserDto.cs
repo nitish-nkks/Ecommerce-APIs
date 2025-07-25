@@ -20,7 +20,7 @@ namespace Ecommerce_APIs.Models.DTOs.UserDtos
         public required string Email { get; set; }
 
         [Required]
-        [MaxLength(25)]
+        [MaxLength(200)]
         [Column("password_hash")]
         public required string PasswordHash { get; set; }
 
