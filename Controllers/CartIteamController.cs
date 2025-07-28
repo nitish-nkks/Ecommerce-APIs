@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Data;
+﻿using System.Security.Claims;
+using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.CartIteamsDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -22,6 +23,7 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> AddToCart(CreateCartItemDto dto)
         {
             try
@@ -35,11 +37,22 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Product not found" });
                 }
 
+                int? userId = null;
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var parsedUserId))
+                {
+                    userId = parsedUserId;
+                }
+
+                if (userId == null && string.IsNullOrEmpty(dto.GuestId))
+                    return BadRequest(new { success = false, message = "Either a logged-in user or GuestId must be provided." });
+
                 var cartItem = new CartItem
                 {
                     ProductId = dto.ProductId,
-                    UserId = dto.UserId,
-                    Quantity = dto.Quantity
+                    Quantity = dto.Quantity,
+                    UserId = userId,
+                    GuestId = userId == null ? dto.GuestId : null,
                 };
 
                 dbContext.CartItems.Add(cartItem);
