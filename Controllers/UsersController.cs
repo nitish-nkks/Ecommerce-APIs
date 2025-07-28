@@ -11,6 +11,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
@@ -25,10 +26,20 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public IActionResult AddUser([FromBody] AddUserDto addUserDto)
         {
             try
             {
+                if (dbContext.userss.Any(u => u.Email == addUserDto.Email))
+                {
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "Email already exists. Please use a different email.",
+                    });
+                }
+
                 var user = mapper.Map<Users>(addUserDto);
                 user.PasswordHash = PasswordHasherHelper.HashPassword(addUserDto.PasswordHash);
                 user.Role = addUserDto.Role ?? UserRole.Customer;
@@ -57,7 +68,6 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [Authorize]
         [HttpPatch("{id:int}")]
         public IActionResult UpdateUser([FromBody] UpdateUserDto updateUserDto, int id)
         {
