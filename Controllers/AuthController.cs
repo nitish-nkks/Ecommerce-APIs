@@ -31,6 +31,21 @@ namespace Ecommerce_APIs.Controllers
             if (!PasswordHasherHelper.VerifyPassword(user.PasswordHash, request.Password))
                 return Unauthorized(new { message = "Invalid email or password" });
 
+            if (!string.IsNullOrEmpty(request.GuestId))
+            {
+                var guestCartItems = await _context.CartItems
+                    .Where(c => c.GuestId == request.GuestId && c.UserId == null)
+                    .ToListAsync();
+
+                foreach (var item in guestCartItems)
+                {
+                    item.UserId = user.Id;
+                    item.GuestId = null;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
             var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role.ToString());
 
             return Ok(new
@@ -52,5 +67,6 @@ namespace Ecommerce_APIs.Controllers
     {
         public required string Email { get; set; }
         public required string Password { get; set; }
+        public string? GuestId { get; set; } = null;
     }
 }

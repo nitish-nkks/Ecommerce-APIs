@@ -6,11 +6,12 @@ namespace Ecommerce_APIs.Models.Entites
     {
         public int Id { get; set; }
 
-        public int UserId { get; set; }
-        public Users User { get; set; } // FK relationship
+        public int? UserId { get; set; }
+        public Users User { get; set; } 
+        public string? GuestId { get; set; }
 
         public int ProductId { get; set; }
-        public Product Product { get; set; } // FK relationship
+        public Product Product { get; set; } 
 
         public int Quantity { get; set; } = 1;
 

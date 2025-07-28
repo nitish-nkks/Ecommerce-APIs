@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Data;
+﻿using System.Security.Claims;
+using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.OrderDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -24,13 +25,18 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var user = await dbContext.userss.FindAsync(dto.UserId);
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                    return Unauthorized(new { success = false, message = "Invalid token or user not found" });
+
+                var user = await dbContext.userss.FindAsync(userId);
                 if (user == null)
-                    return BadRequest(new { success = false, message = $"User with ID {dto.UserId} does not exist." });
+                    return BadRequest(new { success = false, message = $"User with ID {userId} does not exist." });
 
                 var cartItems = await dbContext.CartItems
                     .Include(c => c.Product)
-                    .Where(c => c.UserId == dto.UserId && c.IsActive)
+                    .Where(c => c.UserId == userId && c.IsActive)
                     .ToListAsync();
 
                 if (cartItems == null || !cartItems.Any())
@@ -40,12 +46,12 @@ namespace Ecommerce_APIs.Controllers
 
                 var order = new Order
                 {
-                    UserId = dto.UserId,
+                    UserId = userId,
                     ShippingAddress = dto.ShippingAddress,
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Pending,
-                    CreatedBy = dto.UserId,
+                    CreatedBy = userId,
                     CreatedAt = DateTime.Now,
                     OrderItems = cartItems.Select(item => new OrderItem
                     {
