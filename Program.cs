@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Mappings;
@@ -13,7 +14,9 @@ builder.Services.AddHttpClient<PincodeService>();
 
 // Configure EF Core
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("EcommerceDb")));
+    options.UseMySql(builder.Configuration.GetConnectionString("EcommerceDb"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("EcommerceDb"))));
+
 
 // Register custom services
 builder.Services.AddScoped<JwtService>();
