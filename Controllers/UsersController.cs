@@ -84,7 +84,30 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
 
-                mapper.Map(updateUserDto, user); 
+                if (!string.IsNullOrWhiteSpace(updateUserDto.FirstName))
+                    user.FirstName = updateUserDto.FirstName;
+
+                if (!string.IsNullOrWhiteSpace(updateUserDto.LastName))
+                    user.LastName = updateUserDto.LastName;
+
+                if (!string.IsNullOrWhiteSpace(updateUserDto.Email))
+                {
+                    var existingUser = dbContext.userss.FirstOrDefault(u => u.Email == updateUserDto.Email && u.Id != id);
+                    if (existingUser != null)
+                    {
+                        return Conflict(new
+                        {
+                            success = false,
+                            message = "Email already exists. Please use a different email.",
+                        });
+                    }
+                    user.Email = updateUserDto.Email;
+                }
+
+
+                if (!string.IsNullOrWhiteSpace(updateUserDto.PasswordHash))
+                    user.PasswordHash = PasswordHasherHelper.HashPassword(updateUserDto.PasswordHash);
+
                 user.UpdatedAt = DateTime.Now;
 
                 dbContext.userss.Update(user);

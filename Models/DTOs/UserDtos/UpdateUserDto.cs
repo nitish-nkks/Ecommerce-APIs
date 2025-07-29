@@ -7,20 +7,19 @@ namespace Ecommerce_APIs.Models.DTOs.UserDtos
     {
         [MaxLength(50)]
         [Column("first_name")]
-        public required string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
         [MaxLength(50)]
         [Column("last_name")]
-        public required string LastName { get; set; }
+        public string? LastName { get; set; }
 
         [MaxLength(100)]
         [EmailAddress]
         [Column("email")]
-        public required string Email { get; set; }
+        public string? Email { get; set; }
 
-        [Required]
-        [MaxLength(25)]
+        [MaxLength(200)]
         [Column("password_hash")]
-        public required string PasswordHash { get; set; }
+        public string? PasswordHash { get; set; }
     }
 }
