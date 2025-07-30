@@ -17,14 +17,16 @@ namespace Ecommerce_APIs.Models.Entities
         public decimal Price { get; set; }
 
         public int StockQuantity { get; set; }
-
+        public int MinOrderQuantity { get; set; }
+        public int MaxOrderQuantity => StockQuantity;
         public int CategoryId { get; set; }
 
         [ForeignKey("CategoryId")]
-        public Category? CategoryBy { get; set; }
+        public Category? Category { get; set; }
 
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
+        public bool IsActive { get; set; } = true;
 
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; } = DateTime.Now;

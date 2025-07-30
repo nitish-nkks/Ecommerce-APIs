@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Models.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Ecommerce_APIs.Models.Entities;
 
 namespace Ecommerce_APIs.Models.Entites
 {
@@ -11,7 +12,10 @@ namespace Ecommerce_APIs.Models.Entites
 
         public decimal DiscountPercent { get; set; }
 
+        [Column(TypeName = "datetime(3)")]
         public DateTime StartDate { get; set; }
+
+        [Column(TypeName = "datetime(3)")]
         public DateTime EndDate { get; set; }
 
         public int? CreatedBy { get; set; }
@@ -19,6 +23,7 @@ namespace Ecommerce_APIs.Models.Entites
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
 }

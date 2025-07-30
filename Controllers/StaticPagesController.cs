@@ -110,7 +110,10 @@ namespace Ecommerce_APIs.Controllers
                 if (page == null)
                     return NotFound(new { success = false, message = "Static page not found" });
 
-                _context.StaticPages.Remove(page);
+
+                page.IsActive = false;
+                page.UpdatedAt = DateTime.Now;
+
                 await _context.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Static page deleted successfully" });

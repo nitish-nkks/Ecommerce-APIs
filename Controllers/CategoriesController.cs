@@ -20,7 +20,7 @@ namespace Ecommerce_APIs.Controllers
             _context = context;
         }
 
-        // GET: api/categories
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -31,16 +31,26 @@ namespace Ecommerce_APIs.Controllers
                     .Include(c => c.SubCategories)
                     .ToListAsync();
 
-                return Ok(categories);
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Categories fetched successfully.",
+                    Data = categories
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An error occurred while fetching categories.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while fetching categories.",
+                    Data = (string?)null
+                });
             }
         }
 
-        // GET: api/categories/tree
+        
         [HttpGet("tree")]
         public async Task<IActionResult> GetTree()
         {
@@ -56,16 +66,26 @@ namespace Ecommerce_APIs.Controllers
                        .ToList();
 
                 var tree = Build(null);
-                return Ok(tree);
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Category tree built successfully.",
+                    Data = tree
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An error occurred while building the category tree.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while building the category tree.",
+                    Data = (string?)null
+                });
             }
         }
 
-        // GET: api/categories/5
+        
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -76,17 +96,32 @@ namespace Ecommerce_APIs.Controllers
                     .Include(c => c.SubCategories)
                     .FirstOrDefaultAsync(c => c.Id == id);
 
-                if (category == null) return NotFound("Category not found");
-                return Ok(category);
+                if (category == null) return NotFound(new
+                {
+                    Succeeded = false,
+                    Message = "Category not found.",
+                    Data = (string?)null
+                });
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Category fetched successfully.",
+                    Data = category
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An error occurred while fetching the category.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while fetching the category.",
+                    Data = (string?)null
+                });
             }
         }
 
-        // POST: api/categories
+        
         [HttpPost]
         public async Task<IActionResult> AddCategory(AddCategoryDto dto)
         {
@@ -103,28 +138,48 @@ namespace Ecommerce_APIs.Controllers
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync();
 
-                return Ok(category);
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Category added successfully.",
+                    Data = category
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An error occurred while adding the category.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while adding the category.",
+                    Data = (string?)null
+                });
             }
         }
 
-        // PUT: api/categories/5
+        
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
         {
             try
             {
                 var category = await _context.Categories.FindAsync(id);
-                if (category == null) return NotFound("Category not found");
+                if (category == null) return NotFound(new
+                {
+                    Succeeded = false,
+                    Message = "Category not found.",
+                    Data = (string?)null
+                });
 
                 if (dto.ParentCategoryId.HasValue &&
                     !await _context.Categories.AnyAsync(c => c.Id == dto.ParentCategoryId.Value))
                 {
-                    return BadRequest("Invalid ParentCategoryId.");
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "Invalid ParentCategoryId.",
+                        Data = (string?)null
+                    });
                 }
 
                 category.Name = dto.Name;
@@ -133,32 +188,58 @@ namespace Ecommerce_APIs.Controllers
                 category.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
-                return NoContent();
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Category updated successfully.",
+                    Data = category
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An error occurred while updating the category.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while updating the category.",
+                    Data = (string?)null
+                });
             }
         }
 
-        // DELETE: api/categories/5
+        
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
                 var category = await _context.Categories.FindAsync(id);
-                if (category == null) return NotFound("Category not found");
+                if (category == null) return NotFound(new
+                {
+                    Succeeded = false,
+                    Message = "Category not found.",
+                    Data = (string?)null
+                });
 
-                _context.Categories.Remove(category);
+                category.IsActive = false;
+                category.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
-                return NoContent();
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Category deleted successfully.",
+                    Data = (string?)null
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An error occurred while deleting the category.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while deleting the category.",
+                    Data = (string?)null
+                });
             }
         }
     }

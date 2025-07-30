@@ -12,6 +12,9 @@ namespace Ecommerce_APIs.Models.Entites
         [Required, EmailAddress, MaxLength(100)]
         public string Email { get; set; } = string.Empty;
 
+        [MaxLength(20)]
+        public string? Number { get; set; }
+
         [MaxLength(200)]
         public string? Subject { get; set; }
 
@@ -20,6 +23,7 @@ namespace Ecommerce_APIs.Models.Entites
 
         public bool IsRead { get; set; } = false;
 
+        public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 

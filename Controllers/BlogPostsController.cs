@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.BlogPostDtos;
+using Ecommerce_APIs.Models.DTOs.GlobalFilterDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -25,10 +26,14 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBlogPosts()
+        public async Task<IActionResult> GetBlogPosts([FromQuery] GlobalFilterDto filter)
         {
             try
             {
+                var query = _context.BlogPosts.AsQueryable();
+                if (filter.IsActive.HasValue)
+                    query = query.Where(p => p.IsActive == filter.IsActive.Value);
+
                 var posts = await _context.BlogPosts.ToListAsync();
                 var result = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
                 return Ok(new { success = true, message = "Blog posts fetched successfully", data = result });
@@ -114,7 +119,8 @@ namespace Ecommerce_APIs.Controllers
                 if (post == null)
                     return NotFound(new { success = false, message = "Blog post not found" });
 
-                _context.BlogPosts.Remove(post);
+                post.IsActive = false;
+                post.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Blog post deleted successfully" });

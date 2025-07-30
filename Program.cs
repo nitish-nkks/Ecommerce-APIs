@@ -88,7 +88,8 @@ builder.WebHost.UseSentry(o =>
     o.TracesSampleRate = 1.0;
 });
 
-
+// Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 

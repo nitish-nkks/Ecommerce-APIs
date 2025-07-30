@@ -31,7 +31,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                if (dbContext.userss.Any(u => u.Email == addUserDto.Email))
+                if (dbContext.users.Any(u => u.Email == addUserDto.Email))
                 {
                     return Conflict(new
                     {
@@ -46,7 +46,7 @@ namespace Ecommerce_APIs.Controllers
                 user.IsActive = addUserDto.IsActive ?? true;
                 user.CreatedAt = DateTime.Now;
 
-                dbContext.userss.Add(user);
+                dbContext.users.Add(user);
                 dbContext.SaveChanges();
 
                 return Ok(new
@@ -73,7 +73,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var user = dbContext.userss.Find(id);
+                var user = dbContext.users.Find(id);
                 if (user == null)
                 {
                     return NotFound(new
@@ -92,7 +92,7 @@ namespace Ecommerce_APIs.Controllers
 
                 if (!string.IsNullOrWhiteSpace(updateUserDto.Email))
                 {
-                    var existingUser = dbContext.userss.FirstOrDefault(u => u.Email == updateUserDto.Email && u.Id != id);
+                    var existingUser = dbContext.users.FirstOrDefault(u => u.Email == updateUserDto.Email && u.Id != id);
                     if (existingUser != null)
                     {
                         return Conflict(new
@@ -110,7 +110,7 @@ namespace Ecommerce_APIs.Controllers
 
                 user.UpdatedAt = DateTime.Now;
 
-                dbContext.userss.Update(user);
+                dbContext.users.Update(user);
                 dbContext.SaveChanges();
 
                 return Ok(new
@@ -138,7 +138,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var user = dbContext.userss.Find(id);
+                var user = dbContext.users.FirstOrDefault(u => u.Id == id && u.IsActive);
                 if (user == null)
                 {
                     return NotFound(new
@@ -149,7 +149,9 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
 
-                dbContext.userss.Remove(user);
+                user.IsActive = false;
+                user.UpdatedAt = DateTime.Now;
+
                 dbContext.SaveChanges();
 
                 return Ok(new
@@ -176,7 +178,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var user = dbContext.userss.Find(id);
+                var user = dbContext.users.Find(id);
                 if (user == null)
                 {
                     return NotFound(new
