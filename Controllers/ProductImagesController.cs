@@ -99,7 +99,9 @@ public class ProductImagesController : ControllerBase
             if (System.IO.File.Exists(filePath))
                 System.IO.File.Delete(filePath);
 
-            _context.ProductImages.Remove(image);
+            image.IsActive = false;
+            image.UpdatedAt = DateTime.Now;
+
             await _context.SaveChangesAsync();
 
             return NoContent();

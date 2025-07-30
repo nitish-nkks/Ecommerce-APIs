@@ -2,6 +2,7 @@
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.ContactMessageDtos;
 using Ecommerce_APIs.Models.Entites;
+using Ecommerce_APIs.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,34 +17,58 @@ namespace Ecommerce_APIs.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
 
-        public ContactMessageController(ApplicationDbContext context, IMapper mapper)
+        public ContactMessageController(ApplicationDbContext context, IMapper mapper,IEmailService emailService,IConfiguration config)
         {
             _context = context;
             _mapper = mapper;
+            _emailService = emailService;
+            _config = config;
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateMessage([FromBody] ContactMessageCreateDto dto)
         {
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "Invalid contact message.",
+                        Data = (string?)null
+                    });
 
                 var contact = _mapper.Map<ContactMessage>(dto);
                 contact.IsRead = false;
+                contact.IsActive = true;
                 contact.CreatedAt = DateTime.Now;
 
                 _context.ContactMessages.Add(contact);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Message sent successfully" });
+                var contactEmail = _config["Contact:RecipientEmail"] ?? "example@gmail.com";
+                await _emailService.SendContactNotificationEmail(contact, contactEmail);
+
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Message sent successfully.",
+                    Data = _mapper.Map<ContactMessageDto>(contact)
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An unexpected error occurred while creating the message.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An unexpected error occurred while creating the message.",
+                    Data = (string?)null
+                });
             }
         }
 
@@ -57,12 +82,22 @@ namespace Ecommerce_APIs.Controllers
                     .ToList();
 
                 var dtoList = _mapper.Map<List<ContactMessageDto>>(messages);
-                return Ok(dtoList);
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Messages fetched successfully.",
+                    Data = dtoList
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, "An unexpected error occurred while fetching messages.");
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An unexpected error occurred while fetching messages.",
+                    Data = (string?)null
+                });
             }
         }
     }

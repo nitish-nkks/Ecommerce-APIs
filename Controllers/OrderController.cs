@@ -30,7 +30,7 @@ namespace Ecommerce_APIs.Controllers
                 if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
                     return Unauthorized(new { success = false, message = "Invalid token or user not found" });
 
-                var user = await dbContext.userss.FindAsync(userId);
+                var user = await dbContext.users.FindAsync(userId);
                 if (user == null)
                     return BadRequest(new { success = false, message = $"User with ID {userId} does not exist." });
 
@@ -41,6 +41,38 @@ namespace Ecommerce_APIs.Controllers
 
                 if (cartItems == null || !cartItems.Any())
                     return BadRequest(new { success = false, message = "Cart is empty. Cannot create order." });
+
+                foreach (var item in cartItems)
+                {
+                    var product = item.Product;
+
+                    if (item.Quantity < product.MinOrderQuantity)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = $"Minimum order for '{product.Name}' is {product.MinOrderQuantity} units."
+                        });
+                    }
+
+                    if (item.Quantity > product.StockQuantity)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = $"Only {product.StockQuantity} units available for '{product.Name}'."
+                        });
+                    }
+
+                    if (item.Quantity > product.StockQuantity)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = $"Maximum order for '{product.Name}' is {product.StockQuantity} units."
+                        });
+                    }
+                }
 
                 decimal totalAmount = cartItems.Sum(item => item.Product.Price * item.Quantity);
 
@@ -62,8 +94,14 @@ namespace Ecommerce_APIs.Controllers
                     }).ToList()
                 };
 
+                foreach (var item in cartItems)
+                {
+                    item.Product.StockQuantity -= item.Quantity;
+                }
                 dbContext.Orders.Add(order);
+
                 dbContext.CartItems.RemoveRange(cartItems);
+
                 await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, orderId = order.Id, message = "Order created successfully" });
@@ -156,7 +194,7 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpDelete("{orderId}")]
-        public IActionResult DeleteOrder(int orderId)
+        public IActionResult CancelOrder(int orderId)
         {
             try
             {
@@ -170,8 +208,8 @@ namespace Ecommerce_APIs.Controllers
                 if (order.Status != OrderStatus.Pending)
                     return BadRequest(new { success = false, message = "Only pending orders can be cancelled." });
 
-                dbContext.OrderItems.RemoveRange(order.OrderItems);
-                dbContext.Orders.Remove(order);
+                order.IsActive = false;
+                order.UpdatedAt = DateTime.Now;
                 dbContext.SaveChanges();
 
                 return Ok(new { success = true, message = "Order cancelled successfully." });

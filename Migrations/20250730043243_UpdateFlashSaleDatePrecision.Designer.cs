@@ -4,6 +4,7 @@ using Ecommerce_APIs.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250730043243_UpdateFlashSaleDatePrecision")]
+    partial class UpdateFlashSaleDatePrecision
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,9 +38,6 @@ namespace Ecommerce_APIs.Migrations
 
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -118,9 +118,6 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -197,9 +194,6 @@ namespace Ecommerce_APIs.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<bool>("IsRead")
                         .HasColumnType("tinyint(1)");
 
@@ -211,10 +205,6 @@ namespace Ecommerce_APIs.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<string>("Number")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("Subject")
                         .HasMaxLength(200)
@@ -364,9 +354,6 @@ namespace Ecommerce_APIs.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
@@ -406,9 +393,6 @@ namespace Ecommerce_APIs.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("tinyint(1)");
 
@@ -442,9 +426,6 @@ namespace Ecommerce_APIs.Migrations
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -543,12 +524,6 @@ namespace Ecommerce_APIs.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int>("MinOrderQuantity")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -689,13 +664,13 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entities.Product", b =>
                 {
-                    b.HasOne("Category", "Category")
+                    b.HasOne("Category", "CategoryBy")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Category");
+                    b.Navigation("CategoryBy");
                 });
 
             modelBuilder.Entity("Category", b =>

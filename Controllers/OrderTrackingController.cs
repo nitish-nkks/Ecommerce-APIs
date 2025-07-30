@@ -20,7 +20,7 @@ namespace Ecommerce_APIs.Controllers
             _context = context;
         }
 
-        // POST: api/OrderTracking
+
         [HttpPost]
         public async Task<IActionResult> CreateOrderTracking([FromBody] CreateOrderTrackingDto dto)
         {
@@ -51,7 +51,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        // GET: api/OrderTracking
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -83,7 +83,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        // GET: api/OrderTracking/{id}
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -115,7 +115,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        // PUT: api/OrderTracking/{id}
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] string newStatus)
         {
@@ -143,7 +143,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        // DELETE: api/OrderTracking/{id}
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> SoftDelete(int id)
         {

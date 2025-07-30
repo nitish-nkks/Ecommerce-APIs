@@ -13,11 +13,11 @@ namespace Ecommerce_APIs.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class CartIteamController : ControllerBase
+    public class CartItemController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
 
-        public CartIteamController(ApplicationDbContext dbContext)
+        public CartItemController(ApplicationDbContext dbContext)
         {
             this.dbContext = dbContext;
         }
@@ -73,7 +73,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var cartItems = await dbContext.CartItems
-                    .Where(ci => ci.UserId == userId)
+                    .Where(ci => ci.UserId == userId && ci.IsActive)
                     .Include(ci => ci.Product)
                         .ThenInclude(p => p.ProductImages)
                     .ToListAsync();
@@ -102,13 +102,22 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var cartItem = await dbContext.CartItems.FindAsync(id);
+                var cartItem = await dbContext.CartItems
+                    .Where(c => c.Id == id && c.IsActive) 
+                    .FirstOrDefaultAsync();
+
                 if (cartItem == null)
                 {
                     return NotFound(new { success = false, message = "Cart item not found" });
                 }
 
                 cartItem.Quantity = quantity;
+
+                if (quantity <= 0)
+                {
+                    return BadRequest(new { success = false, message = "Quantity must be greater than 0" });
+                }
+
                 await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Quantity updated" });
@@ -131,7 +140,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Cart item does not exist" });
                 }
 
-                dbContext.CartItems.Remove(cartItem);
+                cartItem.IsActive = false;
                 await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Item removed from cart" });

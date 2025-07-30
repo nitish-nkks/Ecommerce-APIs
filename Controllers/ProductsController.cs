@@ -54,7 +54,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var products = await _context.Products
-                    .Include(p => p.CategoryBy)
+                    .Include(p => p.Category)
                     .ToListAsync();
 
                 return Ok(new { success = true, message = "Products fetched", data = products });
@@ -72,7 +72,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var product = await _context.Products
-                    .Include(p => p.CategoryBy)
+                    .Include(p => p.Category)
                     .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (product == null)
@@ -122,7 +122,8 @@ namespace Ecommerce_APIs.Controllers
                 if (product == null)
                     return NotFound(new { success = false, message = "Product not found" });
 
-                _context.Products.Remove(product);
+                product.IsActive = false;
+                product.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Product deleted" });

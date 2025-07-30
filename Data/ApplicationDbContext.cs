@@ -15,7 +15,7 @@ namespace Ecommerce_APIs.Data
         {
         }
 
-        public DbSet<Users> userss { get; set; }
+        public DbSet<Users> users { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
@@ -44,7 +44,7 @@ namespace Ecommerce_APIs.Data
 
             // Product ↔ Category relationship
             modelBuilder.Entity<Product>()
-                .HasOne(p => p.CategoryBy)
+                .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId);
 

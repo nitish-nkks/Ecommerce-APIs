@@ -17,6 +17,6 @@ public class Category
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-
+    public bool IsActive { get; set; } = true;
     public ICollection<Product>? Products { get; set; }
 }

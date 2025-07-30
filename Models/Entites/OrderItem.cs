@@ -10,7 +10,7 @@ namespace Ecommerce_APIs.Models.Entites
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; } 
         public decimal TotalPrice { get; set; }
-
+        public bool IsActive { get; set; } = true;
         public Order Order { get; set; }
         public Product Product { get; set; }
     }

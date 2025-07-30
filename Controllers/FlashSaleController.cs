@@ -48,13 +48,10 @@ namespace Ecommerce_APIs.Controllers
         [HttpGet("active")]
         public IActionResult GetActiveFlashSales()
         {
-            try
-            {
-                var now = DateTime.Now;
-
+            try{
                 var sales = _context.FlashSales
                     .Include(fs => fs.Product)
-                    .Where(fs => fs.StartDate <= now && fs.EndDate >= now)
+                    .Where(fs => fs.IsActive)
                     .ToList();
 
                 return Ok(sales);
@@ -66,7 +63,22 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        // Helper method to get the current user's ID from the claims principal
+        [HttpPatch("{id}/toggle-active")]
+        public async Task<IActionResult> ToggleFlashSaleActiveStatus(int id)
+        {
+            var flashSale = await _context.FlashSales.FindAsync(id);
+            if (flashSale == null) return NotFound(new { message = "Flash sale not found." });
+
+            flashSale.IsActive = !flashSale.IsActive;
+            flashSale.UpdatedAt = DateTime.Now;
+            flashSale.UpdatedBy = GetCurrentUserId();
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Flash sale status updated.", isActive = flashSale.IsActive });
+        }
+
+
+
         private int? GetCurrentUserId()
         {
             if (User?.Identity?.IsAuthenticated == true)

@@ -23,7 +23,7 @@ namespace Ecommerce_APIs.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.userss.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+            var user = await _context.users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
 
             if (user == null)
                 return Unauthorized(new { message = "Invalid email or password" });
