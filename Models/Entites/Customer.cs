@@ -3,14 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce_APIs.Models.Entites
 {
-    public enum UserRole
-    {
-        Customer, // 0 for coustomer and 1 for admin
-        Admin
-    }
 
-    [Table("users")]
-    public class Users
+    [Table("customers")]
+    public class Customer
     {
         [Key]
         [Column("id")]
@@ -29,14 +24,16 @@ namespace Ecommerce_APIs.Models.Entites
         [Column("email")]
         public required string Email { get; set; }
 
+        [MaxLength(20)]
+        [Required]
+        [Column("phone_number")]
+        public required string PhoneNumber { get; set; }
+        public ICollection<CustomerAddress> Addresses { get; set; } = new List<CustomerAddress>();
+
         [Required]
         [MaxLength(200)]
         [Column("password_hash")]
         public required string PasswordHash { get; set; }
-
-        [Required]
-        [Column("role")]
-        public UserRole Role { get; set; } = UserRole.Customer;
 
         [Required]
         [Column("is_active")]
@@ -45,6 +42,9 @@ namespace Ecommerce_APIs.Models.Entites
         [Required]
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [Column("last_login_at")]
+        public DateTime? LastLoginAt { get; set; }
 
         [Column("updated_at")]
         public DateTime? UpdatedAt { get; set; }

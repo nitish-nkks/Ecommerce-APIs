@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Data;
+﻿using System.Security.Claims;
+using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.CatagoriesDtos;
 using Ecommerce_APIs.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -8,9 +9,9 @@ using Sentry;
 
 namespace Ecommerce_APIs.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class CategoriesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -19,8 +20,20 @@ namespace Ecommerce_APIs.Controllers
         {
             _context = context;
         }
+        private int GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst("UserId") ??
+                              User.FindFirst(ClaimTypes.NameIdentifier) ??
+                              User.FindFirst("sub");
 
-        
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                throw new UnauthorizedAccessException("User ID not found in token.");
+            }
+
+            return userId;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -127,11 +140,32 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                string normalizedNewName = dto.Name?.Trim().ToLower();
+                if (string.IsNullOrWhiteSpace(normalizedNewName))
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "Category name is required.",
+                        Data = (string?)null
+                    });
+                }
+                bool exists = await _context.Categories
+                     .AnyAsync(c => c.IsActive && c.Name.Trim().ToLower() == normalizedNewName);
+                if (exists)
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "A category with the same name already exists.",
+                        Data = (string?)null
+                    });
+                }
                 var category = new Category
                 {
-                    Name = dto.Name,
+                    Name = dto.Name.Trim(),
                     ParentCategoryId = dto.ParentCategoryId,
-                    CreatedById = dto.CreatedById,
+                    CreatedById = GetUserIdFromToken(),
                     CreatedAt = DateTime.Now
                 };
 

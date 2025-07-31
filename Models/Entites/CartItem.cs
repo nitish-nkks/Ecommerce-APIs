@@ -1,4 +1,5 @@
-﻿using Ecommerce_APIs.Models.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Ecommerce_APIs.Models.Entities;
 
 namespace Ecommerce_APIs.Models.Entites
 {
@@ -6,8 +7,10 @@ namespace Ecommerce_APIs.Models.Entites
     {
         public int Id { get; set; }
 
-        public int? UserId { get; set; }
-        public Users User { get; set; } 
+        public int? CustomerId { get; set; }
+
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
         public string? GuestId { get; set; }
 
         public int ProductId { get; set; }

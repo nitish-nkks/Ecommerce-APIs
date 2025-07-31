@@ -13,7 +13,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class FlashSaleController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

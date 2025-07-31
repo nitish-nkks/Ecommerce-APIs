@@ -1,5 +1,4 @@
 ﻿using Ecommerce_APIs.Models.Entites;
-using Ecommerce_APIs.Models.Entites.Ecommerce_APIs.Models.Entities;
 using Ecommerce_APIs.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +14,7 @@ namespace Ecommerce_APIs.Data
         {
         }
 
-        public DbSet<Users> users { get; set; }
+        public DbSet<Customer> Customers { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
@@ -29,6 +28,7 @@ namespace Ecommerce_APIs.Data
         public DbSet<FlashSale> FlashSales { get; set; }
         public DbSet<AllowedState> AllowedStates { get; set; }
         public DbSet<AllowedCity> AllowedCities { get; set; }
+        public DbSet<InternalUser> InternalUsers { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,7 +40,7 @@ namespace Ecommerce_APIs.Data
                 .HasOne(c => c.ParentCategory)
                 .WithMany(c => c.SubCategories)
                 .HasForeignKey(c => c.ParentCategoryId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete loops
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Product ↔ Category relationship
             modelBuilder.Entity<Product>()
@@ -48,14 +48,14 @@ namespace Ecommerce_APIs.Data
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId);
 
-            // Category → Users (CreatedBy)
+            // Category → Customer (CreatedBy)
             modelBuilder.Entity<Category>()
                 .HasOne(c => c.CreatedBy)
                 .WithMany()
                 .HasForeignKey(c => c.CreatedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Category → Users (UpdatedBy)
+            // Category → InternalUser (UpdatedBy)
             modelBuilder.Entity<Category>()
                 .HasOne(c => c.UpdatedBy)
                 .WithMany()
@@ -71,9 +71,9 @@ namespace Ecommerce_APIs.Data
 
             // for adding oder items to the order
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
+                .HasOne(o => o.Customer)
                 .WithMany()         
-                .HasForeignKey(o => o.UserId);
+                .HasForeignKey(o => o.CustomerId);
 
 
             modelBuilder.Entity<OrderItem>()
@@ -83,9 +83,9 @@ namespace Ecommerce_APIs.Data
 
             // For Order tracking
             modelBuilder.Entity<OrderTracking>()
-                 .HasOne(ot => ot.User)
+                 .HasOne(ot => ot.Customer)
                  .WithMany()
-                 .HasForeignKey(ot => ot.UserId)
+                 .HasForeignKey(ot => ot.CustomerId)
                  .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<OrderTracking>()

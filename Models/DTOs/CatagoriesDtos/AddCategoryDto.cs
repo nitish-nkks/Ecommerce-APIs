@@ -3,8 +3,8 @@
     public class AddCategoryDto
     {
         public string Name { get; set; } = null!;
-        public int? ParentCategoryId { get; set; }  
-        public int CreatedById { get; set; }
+        public int? ParentCategoryId { get; set; }
+
     }
 
 }

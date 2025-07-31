@@ -23,43 +23,86 @@ namespace Ecommerce_APIs.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.Email == request.Email && c.IsActive);
 
-            if (user == null)
-                return Unauthorized(new { message = "Invalid email or password" });
-
-            if (!PasswordHasherHelper.VerifyPassword(user.PasswordHash, request.Password))
-                return Unauthorized(new { message = "Invalid email or password" });
-
-            if (!string.IsNullOrEmpty(request.GuestId))
+            if (customer != null)
             {
-                var guestCartItems = await _context.CartItems
-                    .Where(c => c.GuestId == request.GuestId && c.UserId == null)
-                    .ToListAsync();
+                if (!PasswordHasherHelper.VerifyPassword(customer.PasswordHash, request.Password))
+                    return Unauthorized(new { message = "Invalid email or password" });
 
-                foreach (var item in guestCartItems)
+                if (!string.IsNullOrEmpty(request.GuestId))
                 {
-                    item.UserId = user.Id;
-                    item.GuestId = null;
+                    var guestCartItems = await _context.CartItems
+                        .Where(c => c.GuestId == request.GuestId && c.CustomerId == null)
+                        .ToListAsync();
+
+                    foreach (var item in guestCartItems)
+                    {
+                        item.CustomerId = customer.Id;
+                        item.GuestId = null;
+                    }
+
+                    await _context.SaveChangesAsync();
                 }
 
+                customer.LastLoginAt = DateTime.Now;
                 await _context.SaveChangesAsync();
+
+                var token = _jwtService.GenerateToken(
+                    customer.Id.ToString(),
+                    customer.Email,
+                    "Customer",
+                    "Customer"
+                );
+
+                return Ok(new
+                {
+                    token,
+                    role = "Customer",
+                    user = new
+                    {
+                        customer.Id,
+                        customer.FirstName,
+                        customer.LastName,
+                        customer.Email
+                    }
+                });
             }
 
-            var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role.ToString());
+            var internalUser = await _context.InternalUsers
+                .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
 
-            return Ok(new
+            if (internalUser != null)
             {
-                token,
-                user = new
+                if (!PasswordHasherHelper.VerifyPassword(internalUser.PasswordHash, request.Password))
+                    return Unauthorized(new { message = "Invalid email or password" });
+
+                internalUser.LastLoginAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+
+                var token = _jwtService.GenerateToken(
+                    internalUser.Id.ToString(),
+                    internalUser.Email,
+                    internalUser.Role.ToString(),
+                    "InternalUser"
+                );
+
+                return Ok(new
                 {
-                    user.Id,
-                    user.FirstName,
-                    user.LastName,
-                    user.Email,
-                    user.Role
-                }
-            });
+                    token,
+                    role = internalUser.Role.ToString(),
+                    user = new
+                    {
+                        internalUser.Id,
+                        internalUser.UserName,
+                        internalUser.Email,
+                        internalUser.Role
+                    }
+                });
+            }
+
+            return Unauthorized(new { message = "Invalid email or password" });
         }
     }
 
@@ -67,6 +110,6 @@ namespace Ecommerce_APIs.Controllers
     {
         public required string Email { get; set; }
         public required string Password { get; set; }
-        public string? GuestId { get; set; } = null;
+        public string? GuestId { get; set; }
     }
 }

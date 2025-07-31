@@ -51,7 +51,7 @@ namespace Ecommerce_APIs.Controllers
                 {
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity,
-                    UserId = userId,
+                    CustomerId = userId,
                     GuestId = userId == null ? dto.GuestId : null,
                 };
 
@@ -67,13 +67,13 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCartItems(int userId)
+        [HttpGet("{customerId}")]
+        public async Task<IActionResult> GetCartItems(int customerId)
         {
             try
             {
                 var cartItems = await dbContext.CartItems
-                    .Where(ci => ci.UserId == userId && ci.IsActive)
+                    .Where(ci => ci.CustomerId == customerId && ci.IsActive)
                     .Include(ci => ci.Product)
                         .ThenInclude(p => p.ProductImages)
                     .ToListAsync();

@@ -5,7 +5,7 @@
 namespace Ecommerce_APIs.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIsActiveToProducts : Migration
+    public partial class AddOrderTracking : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -1,7 +1,6 @@
 ﻿using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Models.DTOs.OrderTrackingDtos;
-using Ecommerce_APIs.Models.Entites.Ecommerce_APIs.Models.Entities;
-using Ecommerce_APIs.Models.Entities;
+using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +31,7 @@ namespace Ecommerce_APIs.Controllers
                 var orderTracking = new OrderTracking
                 {
                     OrderId = dto.OrderId,
-                    UserId = dto.UserId,
+                    CustomerId = dto.CustomerId,
                     TrackingId = dto.TrackingId,
                     Remarks = dto.Remarks,
                     CurrentStatus = TrackingStatus.Pending,
@@ -59,14 +58,14 @@ namespace Ecommerce_APIs.Controllers
             {
                 var trackings = await _context.OrderTrackings
                     .Include(o => o.Order)
-                    .Include(u => u.User)
+                    .Include(u => u.Customer)
                     .ToListAsync();
 
                 var result = trackings.Select(t => new OrderTrackingDto
                 {
                     Id = t.Id,
                     OrderId = t.OrderId,
-                    UserId = t.UserId,
+                    UserId = t.CustomerId,
                     TrackingId = t.TrackingId,
                     CurrentStatus = t.CurrentStatus.ToString(),
                     Remarks = t.Remarks,
@@ -98,7 +97,7 @@ namespace Ecommerce_APIs.Controllers
                 {
                     Id = t.Id,
                     OrderId = t.OrderId,
-                    UserId = t.UserId,
+                    UserId = t.CustomerId,
                     TrackingId = t.TrackingId,
                     CurrentStatus = t.CurrentStatus.ToString(),
                     Remarks = t.Remarks,
