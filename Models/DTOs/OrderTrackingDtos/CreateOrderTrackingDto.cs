@@ -3,7 +3,7 @@
     public class CreateOrderTrackingDto
     {
         public int OrderId { get; set; }
-        public int UserId { get; set; }
+        public int CustomerId { get; set; }
         public string? TrackingId { get; set; }
         public string? Remarks { get; set; }
     }

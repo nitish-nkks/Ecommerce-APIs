@@ -25,18 +25,18 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                var customerIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+                if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
                     return Unauthorized(new { success = false, message = "Invalid token or user not found" });
 
-                var user = await dbContext.users.FindAsync(userId);
+                var user = await dbContext.Customers.FindAsync(customerId);
                 if (user == null)
-                    return BadRequest(new { success = false, message = $"User with ID {userId} does not exist." });
+                    return BadRequest(new { success = false, message = $"User with ID {customerId} does not exist." });
 
                 var cartItems = await dbContext.CartItems
                     .Include(c => c.Product)
-                    .Where(c => c.UserId == userId && c.IsActive)
+                    .Where(c => c.CustomerId == customerId && c.IsActive)
                     .ToListAsync();
 
                 if (cartItems == null || !cartItems.Any())
@@ -78,12 +78,12 @@ namespace Ecommerce_APIs.Controllers
 
                 var order = new Order
                 {
-                    UserId = userId,
+                    CustomerId = customerId,
                     ShippingAddress = dto.ShippingAddress,
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Pending,
-                    CreatedBy = userId,
+                    CreatedBy = customerId,
                     CreatedAt = DateTime.Now,
                     OrderItems = cartItems.Select(item => new OrderItem
                     {
@@ -112,13 +112,13 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [HttpGet("user/{userId}")]
-        public IActionResult GetOrdersByUser(int userId)
+        [HttpGet("user/{customerId}")]
+        public IActionResult GetOrdersByUser(int customerId)
         {
             try
             {
                 var orders = dbContext.Orders
-                    .Where(o => o.UserId == userId)
+                    .Where(o => o.CustomerId == customerId)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
                             .ThenInclude(p => p.ProductImages)
@@ -250,7 +250,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var orders = await dbContext.Orders
-                    .Include(o => o.User)
+                    .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
                     .ToListAsync();
@@ -263,10 +263,10 @@ namespace Ecommerce_APIs.Controllers
                     o.TotalAmount,
                     User = new
                     {
-                        o.User.Id,
-                        o.User.FirstName,
-                        o.User.LastName,
-                        o.User.Email
+                        o.Customer.Id,
+                        o.Customer.FirstName,
+                        o.Customer.LastName,
+                        o.Customer.Email
                     },
                     Items = o.OrderItems.Select(oi => new
                     {

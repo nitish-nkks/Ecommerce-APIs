@@ -16,17 +16,20 @@
             _configuration = configuration;
         }
 
-        public string GenerateToken(string userId, string userEmail, string role)
+        public string GenerateToken(string userId, string userEmail, string role, string userType)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
 
             var claims = new[]
             {
-        new Claim(JwtRegisteredClaimNames.Sub, userId),
-        new Claim(JwtRegisteredClaimNames.Email, userEmail),
-        new Claim(ClaimTypes.Role, role), // 👈 Add role as claim
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+                new Claim(JwtRegisteredClaimNames.Sub, userId),
+                new Claim(ClaimTypes.Role, role),
+                new Claim("UserType", userType),
+                new Claim("UserId", userId),
+                new Claim("Email", userEmail),
+                new Claim("Role", role),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -35,7 +38,7 @@
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"]!)),
+                expires: DateTime.Now.AddMinutes(double.Parse(jwtSettings["ExpiryInMinutes"]!)),
                 signingCredentials: creds
             );
 

@@ -11,9 +11,10 @@ public class Category
     public ICollection<Category>? SubCategories { get; set; }
 
     public int CreatedById { get; set; }
-    public Users CreatedBy { get; set; }
+    public string CreatedByType { get; set; } = "InternalUser";
+    public InternalUser CreatedBy { get; set; }
     public int? UpdatedById { get; set; }
-    public Users? UpdatedBy { get; set; }
+    public InternalUser? UpdatedBy { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

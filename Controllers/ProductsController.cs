@@ -30,10 +30,36 @@ namespace Ecommerce_APIs.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(new { success = false, message = "Invalid model", data = ModelState });
 
+                string normalizedProductName = dto.Name?.Trim().ToLower();
+                if (string.IsNullOrWhiteSpace(normalizedProductName))
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "Product name is required.",
+                        Data = (string?)null
+
+                    });
+                }
+
+                bool exists = await _context.Products
+                    .AnyAsync(p => p.IsActive && p.Name.Trim().ToLower() == normalizedProductName);
+
+                if (exists)
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "A product with the same name already exists.",
+                        Data = (string?)null
+                    });
+                }
+
                 if (!await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId))
-                    return BadRequest(new { success = false, message = "Invalid category ID" });
+                    return BadRequest(new { success = false, message = "Invalid category ID" , Data = (string?)null });
 
                 var product = mapper.Map<Product>(dto);
+                product.Name = dto.Name.Trim();
                 product.CreatedAt = DateTime.Now;
 
                 _context.Products.Add(product);
@@ -44,7 +70,7 @@ namespace Ecommerce_APIs.Controllers
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new { success = false, message = "An error occurred", data = ex.Message });
+                return StatusCode(500, new { success = false, message = "An error occurred while adding the product.", data = ex.Message });
             }
         }
 

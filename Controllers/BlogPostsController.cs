@@ -13,7 +13,7 @@ namespace Ecommerce_APIs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class BlogPostsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
