@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.CatagoriesDtos;
 using Ecommerce_APIs.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -19,19 +20,6 @@ namespace Ecommerce_APIs.Controllers
         public CategoriesController(ApplicationDbContext context)
         {
             _context = context;
-        }
-        private int GetUserIdFromToken()
-        {
-            var userIdClaim = User.FindFirst("UserId") ??
-                              User.FindFirst(ClaimTypes.NameIdentifier) ??
-                              User.FindFirst("sub");
-
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-            {
-                throw new UnauthorizedAccessException("User ID not found in token.");
-            }
-
-            return userId;
         }
 
         [HttpGet]
@@ -140,6 +128,8 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
+
                 string normalizedNewName = dto.Name?.Trim().ToLower();
                 if (string.IsNullOrWhiteSpace(normalizedNewName))
                 {
@@ -165,7 +155,7 @@ namespace Ecommerce_APIs.Controllers
                 {
                     Name = dto.Name.Trim(),
                     ParentCategoryId = dto.ParentCategoryId,
-                    CreatedById = GetUserIdFromToken(),
+                    CreatedById = userId,
                     CreatedAt = DateTime.Now
                 };
 
@@ -197,6 +187,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
                 var category = await _context.Categories.FindAsync(id);
                 if (category == null) return NotFound(new
                 {
@@ -218,7 +209,7 @@ namespace Ecommerce_APIs.Controllers
 
                 category.Name = dto.Name;
                 category.ParentCategoryId = dto.ParentCategoryId;
-                category.UpdatedById = dto.UpdatedById;
+                category.UpdatedById = userId;
                 category.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
@@ -247,6 +238,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
                 var category = await _context.Categories.FindAsync(id);
                 if (category == null) return NotFound(new
                 {
@@ -256,6 +248,7 @@ namespace Ecommerce_APIs.Controllers
                 });
 
                 category.IsActive = false;
+                category.UpdatedById = userId;
                 category.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
                 return Ok(new

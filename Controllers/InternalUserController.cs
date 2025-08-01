@@ -26,7 +26,8 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                if (await _context.InternalUsers.AnyAsync(u => u.Email == dto.Email))
+                if (await _context.InternalUsers.AnyAsync(u => u.Email == dto.Email)||
+                    await _context.Customers.AllAsync(u => u.Email == dto.Email))
                 {
                     return BadRequest(new
                     {
@@ -78,12 +79,33 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
 
-                _mapper.Map(dto, user);
+                if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != user.Email)
+                {
+                    bool emailExistsInInternal = await _context.InternalUsers
+                        .AnyAsync(u => u.Email == dto.Email && u.Id != id);
+
+                    bool emailExistsInCustomers = await _context.Customers
+                        .AnyAsync(c => c.Email == dto.Email);
+
+                    if (emailExistsInInternal || emailExistsInCustomers)
+                    {
+                        return BadRequest(new
+                        {
+                            Succeeded = false,
+                            Message = "Email is already in use.",
+                            Data = (object?)null
+                        });
+                    }
+
+                    user.Email = dto.Email;
+                }
 
                 if (!string.IsNullOrWhiteSpace(dto.PasswordHash))
                 {
                     user.PasswordHash = PasswordHasherHelper.HashPassword(dto.PasswordHash);
                 }
+
+                _mapper.Map(dto, user);
 
                 user.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();

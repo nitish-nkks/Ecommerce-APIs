@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
+using Ecommerce_APIs.Helpers.Extensions;
 using Ecommerce_APIs.Models.DTOs.BlogPostDtos;
 using Ecommerce_APIs.Models.DTOs.GlobalFilterDtos;
 using Ecommerce_APIs.Models.Entites;
@@ -30,18 +32,37 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var query = _context.BlogPosts.AsQueryable();
-                if (filter.IsActive.HasValue)
-                    query = query.Where(p => p.IsActive == filter.IsActive.Value);
+                filter ??= new GlobalFilterDto();
 
-                var posts = await _context.BlogPosts.ToListAsync();
-                var result = _mapper.Map<IEnumerable<BlogPostDto>>(posts);
-                return Ok(new { success = true, message = "Blog posts fetched successfully", data = result });
+                var (pagedPosts, totalCount) = await _context.BlogPosts
+                    .ApplyGlobalFilter(filter, x => x.Title, x => x.IsActive)
+                    .ToPagedListAsync(filter);
+
+                var result = _mapper.Map<IEnumerable<BlogPostDto>>(pagedPosts);
+
+                if (filter.Format?.ToLower() == "excel")
+                {
+                    return BadRequest(new { success = false, message = "Excel export not implemented yet." });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Blog posts fetched successfully",
+                    totalCount,
+                    page = filter.Page,
+                    pageSize = filter.PageSize,
+                    data = result
+                });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new { success = false, message = "An error occurred while fetching blog posts" });
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while fetching blog posts"
+                });
             }
         }
 
@@ -73,6 +94,7 @@ namespace Ecommerce_APIs.Controllers
                     return BadRequest(new { success = false, message = "Invalid blog post data", data = ModelState });
 
                 var post = _mapper.Map<BlogPost>(dto);
+                post.CreatedBy = TokenHelper.GetUserIdFromClaims(User);
                 post.CreatedAt = DateTime.Now;
 
                 _context.BlogPosts.Add(post);
@@ -98,6 +120,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Blog post not found" });
 
                 _mapper.Map(dto, post);
+                post.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
                 post.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
@@ -120,6 +143,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Blog post not found" });
 
                 post.IsActive = false;
+                post.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
                 post.UpdatedAt = DateTime.Now;
                 await _context.SaveChangesAsync();
 

@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.CartIteamsDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -37,12 +38,7 @@ namespace Ecommerce_APIs.Controllers
                     return NotFound(new { success = false, message = "Product not found" });
                 }
 
-                int? userId = null;
-                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out var parsedUserId))
-                {
-                    userId = parsedUserId;
-                }
+                var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
 
                 if (userId == null && string.IsNullOrEmpty(dto.GuestId))
                     return BadRequest(new { success = false, message = "Either a logged-in user or GuestId must be provided." });
@@ -51,8 +47,10 @@ namespace Ecommerce_APIs.Controllers
                 {
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity,
-                    CustomerId = userId,
+                    UserId = userId,
                     GuestId = userId == null ? dto.GuestId : null,
+                    UserType = userId == null ? "Guest" : userType ?? "Unknown",
+                    AddedAt = DateTime.Now
                 };
 
                 dbContext.CartItems.Add(cartItem);
@@ -63,9 +61,15 @@ namespace Ecommerce_APIs.Controllers
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new { success = false, message = "Internal server error", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message,
+                    error = ex.InnerException?.Message ?? ex.Message
+                });
             }
         }
+
 
         [HttpGet("{customerId}")]
         public async Task<IActionResult> GetCartItems(int customerId)
@@ -73,7 +77,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var cartItems = await dbContext.CartItems
-                    .Where(ci => ci.CustomerId == customerId && ci.IsActive)
+                    .Where(ci => ci.UserId == customerId && ci.IsActive)
                     .Include(ci => ci.Product)
                         .ThenInclude(p => p.ProductImages)
                     .ToListAsync();

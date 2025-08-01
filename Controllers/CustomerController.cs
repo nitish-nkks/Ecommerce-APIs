@@ -31,7 +31,8 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                if (dbContext.Customers.Any(u => u.Email == addCustomerDto.Email))
+                if (dbContext.Customers.Any(u => u.Email == addCustomerDto.Email)||
+                    dbContext.InternalUsers.Any(iu =>iu.Email == addCustomerDto.Email))
                 {
                     return Conflict(new
                     {
@@ -89,8 +90,11 @@ namespace Ecommerce_APIs.Controllers
 
                 if (!string.IsNullOrWhiteSpace(updateCustomerDto.Email))
                 {
-                    var existingUser = dbContext.Customers.FirstOrDefault(u => u.Email == updateCustomerDto.Email && u.Id != id);
-                    if (existingUser != null)
+                    var emailExistsInCustomers = dbContext.Customers.Any(u => u.Email == updateCustomerDto.Email && u.Id != id);
+
+                    var emailExistsInInternalUsers = dbContext.InternalUsers.Any(iu => iu.Email == updateCustomerDto.Email);
+
+                    if (emailExistsInCustomers || emailExistsInInternalUsers)
                     {
                         return Conflict(new
                         {

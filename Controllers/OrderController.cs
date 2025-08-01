@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.OrderDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -36,10 +37,10 @@ namespace Ecommerce_APIs.Controllers
 
                 var cartItems = await dbContext.CartItems
                     .Include(c => c.Product)
-                    .Where(c => c.CustomerId == customerId && c.IsActive)
+                    .Where(c => c.UserId == customerId && c.IsActive)
                     .ToListAsync();
 
-                if (cartItems == null || !cartItems.Any())
+                if (!cartItems.Any())
                     return BadRequest(new { success = false, message = "Cart is empty. Cannot create order." });
 
                 foreach (var item in cartItems)
@@ -47,32 +48,31 @@ namespace Ecommerce_APIs.Controllers
                     var product = item.Product;
 
                     if (item.Quantity < product.MinOrderQuantity)
-                    {
+
                         return BadRequest(new
                         {
                             success = false,
-                            message = $"Minimum order for '{product.Name}' is {product.MinOrderQuantity} units."
+                            message = $"Minimum order quantity for '{product.Name}' is {product.MinOrderQuantity}."
                         });
-                    }
+
+
+                    if (item.Quantity > product.MaxOrderQuantity)
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = $"Maximum order quantity for '{product.Name}' is {product.MaxOrderQuantity}."
+                        });
+
 
                     if (item.Quantity > product.StockQuantity)
-                    {
+
                         return BadRequest(new
                         {
                             success = false,
                             message = $"Only {product.StockQuantity} units available for '{product.Name}'."
                         });
-                    }
-
-                    if (item.Quantity > product.StockQuantity)
-                    {
-                        return BadRequest(new
-                        {
-                            success = false,
-                            message = $"Maximum order for '{product.Name}' is {product.StockQuantity} units."
-                        });
-                    }
                 }
+
 
                 decimal totalAmount = cartItems.Sum(item => item.Product.Price * item.Quantity);
 
@@ -84,7 +84,9 @@ namespace Ecommerce_APIs.Controllers
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Pending,
                     CreatedBy = customerId,
+                    CreatedByUserType = TokenHelper.GetUserTypeFromClaims(User),
                     CreatedAt = DateTime.Now,
+                    IsActive = true,
                     OrderItems = cartItems.Select(item => new OrderItem
                     {
                         ProductId = item.ProductId,
@@ -98,6 +100,8 @@ namespace Ecommerce_APIs.Controllers
                 {
                     item.Product.StockQuantity -= item.Quantity;
                 }
+
+
                 dbContext.Orders.Add(order);
 
                 dbContext.CartItems.RemoveRange(cartItems);
@@ -118,7 +122,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var orders = dbContext.Orders
-                    .Where(o => o.CustomerId == customerId)
+                    .Where(o => o.CustomerId == customerId && o.IsActive)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
                             .ThenInclude(p => p.ProductImages)
@@ -162,7 +166,7 @@ namespace Ecommerce_APIs.Controllers
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
                             .ThenInclude(p => p.ProductImages)
-                    .FirstOrDefault(o => o.Id == orderId);
+                    .FirstOrDefault(o => o.Id == orderId && o.IsActive);
 
                 if (order == null)
                     return NotFound(new { success = false, message = "Order not found." });
@@ -200,7 +204,7 @@ namespace Ecommerce_APIs.Controllers
             {
                 var order = dbContext.Orders
                     .Include(o => o.OrderItems)
-                    .FirstOrDefault(o => o.Id == orderId);
+                    .FirstOrDefault(o => o.Id == orderId && o.IsActive);
 
                 if (order == null)
                     return NotFound(new { success = false, message = "Order not found." });
@@ -209,7 +213,9 @@ namespace Ecommerce_APIs.Controllers
                     return BadRequest(new { success = false, message = "Only pending orders can be cancelled." });
 
                 order.IsActive = false;
+                order.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
                 order.UpdatedAt = DateTime.Now;
+
                 dbContext.SaveChanges();
 
                 return Ok(new { success = true, message = "Order cancelled successfully." });
@@ -225,15 +231,18 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var order = dbContext.Orders.FirstOrDefault(o => o.Id == orderId);
+                var order = dbContext.Orders.FirstOrDefault(o => o.Id == orderId && o.IsActive);
 
                 if (order == null)
                     return NotFound(new { success = false, message = "Order not found." });
 
                 if (!Enum.TryParse<OrderStatus>(statusDto.Status, true, out var newStatus))
-                    return BadRequest(new { success = false, message = "Invalid status." });
+                    return BadRequest(new { success = false, message = "Invalid status value." });
 
                 order.Status = newStatus;
+                order.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
+                order.UpdatedAt = DateTime.Now;
+
                 dbContext.SaveChanges();
 
                 return Ok(new { success = true, message = "Order status updated successfully." });
@@ -250,6 +259,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var orders = await dbContext.Orders
+                    .Where(o => o.IsActive)
                     .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
@@ -283,8 +293,9 @@ namespace Ecommerce_APIs.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = "Failed to retrieve all orders", error = ex.Message });
+                return StatusCode(500, new { success = false, message = "Failed to retrieve orders", error = ex.Message });
             }
         }
     }
 }
+

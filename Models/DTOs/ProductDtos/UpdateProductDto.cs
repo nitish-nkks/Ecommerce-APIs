@@ -17,7 +17,6 @@ namespace Ecommerce_APIs.Models.DTOs.ProductDtos
 
         [Required]
         public int CategoryId { get; set; }
-
-        public int? UpdatedBy { get; set; }
+        public int? MinOrderQuantity { get; set; }
     }
 }
