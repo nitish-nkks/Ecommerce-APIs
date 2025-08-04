@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Ecommerce_APIs.Data;
+﻿using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.OrderDtos;
 using Ecommerce_APIs.Models.Entites;
@@ -85,7 +84,7 @@ namespace Ecommerce_APIs.Controllers
                     ShippingAddress = dto.ShippingAddress,
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
-                    Status = OrderStatus.Pending,
+                    Status = OrderStatus.Order_Placed,
                     CreatedBy = userId.Value,
                     CreatedByUserType = userType,
                     CreatedAt = DateTime.Now,
@@ -197,10 +196,13 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpDelete("{orderId}")]
-        public IActionResult CancelOrder(int orderId)
+        public async Task<IActionResult> CancelOrder(int orderId)
         {
             try
             {
+                var userId = TokenHelper.GetUserIdFromClaims(User);
+                var userType = TokenHelper.GetUserTypeFromClaims(User);
+
                 var order = dbContext.Orders
                     .Include(o => o.OrderItems)
                     .FirstOrDefault(o => o.Id == orderId && o.IsActive);
@@ -208,14 +210,25 @@ namespace Ecommerce_APIs.Controllers
                 if (order == null)
                     return NotFound(new { success = false, message = "Order not found." });
 
-                if (order.Status != OrderStatus.Pending)
-                    return BadRequest(new { success = false, message = "Only pending orders can be cancelled." });
+                if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
+                {
+                    return BadRequest(new { success = false, message = $"Cannot cancel an order that is {order.Status}." });
+                }
 
+                dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+                {
+                    OrderId = order.Id,
+                    Status = OrderStatus.Cancelled,
+                    Remarks = "Cancelled by user",
+                    ChangedByUserId = userId,
+                    ChangedByUserType = userType ?? "Unknown"
+                });
+                order.Status = OrderStatus.Cancelled;
                 order.IsActive = false;
                 order.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
                 order.UpdatedAt = DateTime.Now;
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Order cancelled successfully." });
             }
@@ -226,29 +239,73 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpPut("{orderId}/status")]
-        public IActionResult UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto statusDto)
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderStatusDto statusDto)
         {
             try
             {
                 var order = dbContext.Orders.FirstOrDefault(o => o.Id == orderId && o.IsActive);
-
                 if (order == null)
                     return NotFound(new { success = false, message = "Order not found." });
 
                 if (!Enum.TryParse<OrderStatus>(statusDto.Status, true, out var newStatus))
                     return BadRequest(new { success = false, message = "Invalid status value." });
 
+                var userId = TokenHelper.GetUserIdFromClaims(User);
+                var userType = TokenHelper.GetUserTypeFromClaims(User);
+
+                if (order.Status != newStatus)
+                {
+                    dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+                    {
+                        OrderId = orderId,
+                        Status = newStatus,
+                        Remarks = statusDto.Remarks,
+                        ChangedByUserId = userId,
+                        ChangedByUserType = userType ?? "Unknown"
+                    });
+                }
+
                 order.Status = newStatus;
-                order.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
+                order.UpdatedBy = userId;
                 order.UpdatedAt = DateTime.Now;
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Order status updated successfully." });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { success = false, message = "Error updating order status", error = ex.Message });
+            }
+        }
+
+        [HttpGet("{orderId}/status-history")]
+        public IActionResult GetOrderStatusHistory(int orderId)
+        {
+            try {
+                var history = dbContext.OrderStatusHistories
+                .Where(h => h.OrderId == orderId)
+                .OrderBy(h => h.ChangedAt)
+                .Select(h => new
+                {
+                    h.Status,
+                    h.Remarks,
+                    h.ChangedByUserId,
+                    h.ChangedByUserType,
+                    h.ChangedAt
+                }).ToList();
+
+                return Ok(new { success = true, data = history });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while processing the get order request.",
+                    error = ex.Message
+                });
             }
         }
 
@@ -295,6 +352,112 @@ namespace Ecommerce_APIs.Controllers
                 return StatusCode(500, new { success = false, message = "Failed to retrieve orders", error = ex.Message });
             }
         }
+
+        [HttpPost("{orderId}/return")]
+        public async Task<IActionResult> RequestReturn(int orderId, [FromBody] ReturnRequestDto dto)
+        {
+            try
+            {
+                var userId = TokenHelper.GetUserIdFromClaims(User);
+                var userType = TokenHelper.GetUserTypeFromClaims(User);
+
+                var order = await dbContext.Orders.FirstOrDefaultAsync(o => o.Id == orderId && o.IsActive);
+                if (order == null)
+                    return NotFound(new { success = false, message = "Order not found." });
+
+                if (order.Status != OrderStatus.Delivered)
+                    return BadRequest(new { success = false, message = "Only delivered orders can be returned." });
+
+                order.Status = OrderStatus.Return_Requested;
+                order.UpdatedAt = DateTime.Now;
+                order.UpdatedBy = userId;
+
+                dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+                {
+                    OrderId = order.Id,
+                    Status = OrderStatus.Return_Requested,
+                    Remarks = dto.Reason,
+                    ChangedByUserId = userId,
+                    ChangedByUserType = userType ?? "Unknown",
+                    ChangedAt = DateTime.Now
+                });
+
+                var returnRequest = new OrderReturnRequest
+                {
+                    OrderId = order.Id,
+                    Reason = dto.Reason,
+                    RequestedBy = userId,
+                    RequestedByUserType = userType ?? "Unknown",
+                    RequestedAt = DateTime.Now
+                };
+
+                dbContext.OrderReturnRequests.Add(returnRequest);
+                await dbContext.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Return request submitted successfully." });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while processing the return request.",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpPut("returns/{id}/status")]
+        public async Task<IActionResult> UpdateReturnStatus(int id, [FromBody] ReturnStatusUpdateDto dto)
+        {
+            try
+            {
+                var userId = TokenHelper.GetUserIdFromClaims(User);
+                var userType = TokenHelper.GetUserTypeFromClaims(User);
+
+                var request = await dbContext.OrderReturnRequests.FindAsync(id);
+                if (request == null)
+                    return NotFound(new { success = false, message = "Return request not found." });
+
+                if (!Enum.TryParse<ReturnStatus>(dto.Status, true, out var newStatus))
+                    return BadRequest(new { success = false, message = "Invalid return status value." });
+
+                request.Status = newStatus;
+                request.AdminRemarks = dto.AdminRemarks;
+                request.ActionedAt = DateTime.Now;
+                request.ActionedBy = userId;
+                request.ActionedByUserType = userType ?? "Unknown";
+
+                if (newStatus == ReturnStatus.Approved)
+                {
+                    var order = await dbContext.Orders.FindAsync(request.OrderId);
+                    if (order != null)
+                    {
+                        order.Status = OrderStatus.Returned;
+                        order.UpdatedAt = DateTime.Now;
+                        order.UpdatedBy = userId;
+                    }
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                return Ok(new { success = true, message = $"Return request {newStatus} successfully." });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while updating return request status.",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+
     }
 }
 

@@ -30,7 +30,9 @@ namespace Ecommerce_APIs.Data
         public DbSet<AllowedCity> AllowedCities { get; set; }
         public DbSet<InternalUser> InternalUsers { get; set; }
 
+        public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
 
+        public DbSet<OrderReturnRequest> OrderReturnRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

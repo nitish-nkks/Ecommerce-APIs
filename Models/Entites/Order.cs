@@ -4,11 +4,13 @@ namespace Ecommerce_APIs.Models.Entites
 {
     public enum OrderStatus
     {
-        Pending,
+        Order_Placed,
         Processing,
         Shipped,
         Delivered,
-        Cancelled
+        Cancelled,
+        Return_Requested,
+        Returned
     }
     public class Order
     {
@@ -25,7 +27,7 @@ namespace Ecommerce_APIs.Models.Entites
         public string ShippingAddress { get; set; }
         public string PaymentMethod { get; set; }
         public decimal TotalAmount { get; set; }
-        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public OrderStatus Status { get; set; } = OrderStatus.Order_Placed;
         public bool IsActive { get; set; } = true;
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }

@@ -4,6 +4,7 @@ using Ecommerce_APIs.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250804083745_OderStatusHistroy")]
+    partial class OderStatusHistroy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -537,53 +540,6 @@ namespace Ecommerce_APIs.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("Ecommerce_APIs.Models.Entites.OrderReturnRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("ActionedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("ActionedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ActionedByUserType")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("AdminRemarks")
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("RequestedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RequestedByUserType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderReturnRequests");
-                });
-
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.OrderStatusHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -880,17 +836,6 @@ namespace Ecommerce_APIs.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Ecommerce_APIs.Models.Entites.OrderReturnRequest", b =>
-                {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.OrderStatusHistory", b =>
