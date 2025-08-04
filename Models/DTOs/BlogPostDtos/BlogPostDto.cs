@@ -1,4 +1,6 @@
-﻿namespace Ecommerce_APIs.Models.DTOs.BlogPostDtos
+﻿using Ecommerce_APIs.Models.Entites;
+
+namespace Ecommerce_APIs.Models.DTOs.BlogPostDtos
 {
     public class BlogPostDto
     {
@@ -7,6 +9,6 @@
         public string Slug { get; set; }
         public string Content { get; set; }
         public string Status { get; set; }
-        public int? AuthorId { get; set; }
+        public int? CreatedBy { get; set; }
     }
 }

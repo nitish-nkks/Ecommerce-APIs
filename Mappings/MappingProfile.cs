@@ -40,6 +40,8 @@ namespace Ecommerce_APIs.Mappings
 
             CreateMap<FlashSaleDto, FlashSale>();
 
+            CreateMap<Product, ProductDto>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
 
         }
     }

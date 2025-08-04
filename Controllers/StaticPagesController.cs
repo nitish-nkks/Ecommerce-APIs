@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.StaticPageDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
@@ -62,7 +63,9 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
                 var page = _mapper.Map<StaticPage>(dto);
+                page.CreatedBy = userId;
                 page.CreatedAt = DateTime.Now;
                 _context.StaticPages.Add(page);
                 await _context.SaveChangesAsync();
@@ -82,11 +85,13 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
                 var page = await _context.StaticPages.FindAsync(id);
                 if (page == null)
                     return NotFound(new { success = false, message = "Static page not found" });
 
                 _mapper.Map(dto, page);
+                page.UpdatedBy = userId;
                 page.UpdatedAt = DateTime.Now;
 
                 _context.Entry(page).State = EntityState.Modified;
@@ -106,12 +111,14 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
                 var page = await _context.StaticPages.FindAsync(id);
                 if (page == null)
                     return NotFound(new { success = false, message = "Static page not found" });
 
 
                 page.IsActive = false;
+                page.UpdatedBy = userId;
                 page.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();

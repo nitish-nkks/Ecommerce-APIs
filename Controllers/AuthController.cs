@@ -34,12 +34,12 @@ namespace Ecommerce_APIs.Controllers
                 if (!string.IsNullOrEmpty(request.GuestId))
                 {
                     var guestCartItems = await _context.CartItems
-                        .Where(c => c.GuestId == request.GuestId && c.CustomerId == null)
+                        .Where(c => c.GuestId == request.GuestId && c.UserId == null)
                         .ToListAsync();
 
                     foreach (var item in guestCartItems)
                     {
-                        item.CustomerId = customer.Id;
+                        item.UserId = customer.Id;
                         item.GuestId = null;
                     }
 

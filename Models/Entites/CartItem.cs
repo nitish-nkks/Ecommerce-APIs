@@ -7,12 +7,9 @@ namespace Ecommerce_APIs.Models.Entites
     {
         public int Id { get; set; }
 
-        public int? CustomerId { get; set; }
-
-        [ForeignKey("CustomerId")]
-        public Customer Customer { get; set; }
+        public int? UserId { get; set; }
         public string? GuestId { get; set; }
-
+        public string UserType { get; set; }
         public int ProductId { get; set; }
         public Product Product { get; set; } 
 

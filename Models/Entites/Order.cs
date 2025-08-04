@@ -16,6 +16,7 @@ namespace Ecommerce_APIs.Models.Entites
 
         [ForeignKey("Customer")]
         public int CustomerId { get; set; }
+        public string? CreatedByUserType { get; set; }
         public string ShippingAddress { get; set; }
         public string PaymentMethod { get; set; }
         public decimal TotalAmount { get; set; }

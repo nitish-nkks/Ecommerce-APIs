@@ -4,6 +4,7 @@ using Ecommerce_APIs.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250801112859_MakeCustomerIdNullableInCartItem")]
+    partial class MakeCustomerIdNullableInCartItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -175,13 +178,6 @@ namespace Ecommerce_APIs.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserType")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -735,7 +731,7 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.CartItem", b =>
                 {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", null)
+                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", "Customer")
                         .WithMany("CartItems")
                         .HasForeignKey("CustomerId");
 
@@ -744,6 +740,8 @@ namespace Ecommerce_APIs.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Product");
                 });

@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using Ecommerce_APIs.Data;
+using Ecommerce_APIs.Helpers;
+using Ecommerce_APIs.Helpers.Extensions;
+using Ecommerce_APIs.Models.DTOs.GlobalFilterDtos;
 using Ecommerce_APIs.Models.DTOs.ProductDtos;
 using Ecommerce_APIs.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -27,6 +30,8 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
+                int userId = TokenHelper.GetUserIdFromClaims(User);
+
                 if (!ModelState.IsValid)
                     return BadRequest(new { success = false, message = "Invalid model", data = ModelState });
 
@@ -60,6 +65,7 @@ namespace Ecommerce_APIs.Controllers
 
                 var product = mapper.Map<Product>(dto);
                 product.Name = dto.Name.Trim();
+                product.CreatedBy = userId;
                 product.CreatedAt = DateTime.Now;
 
                 _context.Products.Add(product);
@@ -75,15 +81,28 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] GlobalFilterDto filter)
         {
             try
             {
-                var products = await _context.Products
-                    .Include(p => p.Category)
-                    .ToListAsync();
+                filter ??= new GlobalFilterDto();
 
-                return Ok(new { success = true, message = "Products fetched", data = products });
+                var (pagedProducts, totalCount) = await _context.Products
+                    .Include(p => p.Category)
+                    .ApplyGlobalFilter(filter, x => x.Name, x => x.IsActive)
+                    .ToPagedListAsync(filter);
+
+                var result = mapper.Map<IEnumerable<ProductDto>>(pagedProducts);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Products fetched successfully",
+                    totalCount,
+                    page = filter.Page,
+                    pageSize = filter.PageSize,
+                    data = result
+                });
             }
             catch (Exception ex)
             {
@@ -91,6 +110,7 @@ namespace Ecommerce_APIs.Controllers
                 return StatusCode(500, new { success = false, message = "An error occurred", data = ex.Message });
             }
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -126,6 +146,7 @@ namespace Ecommerce_APIs.Controllers
                     return BadRequest(new { success = false, message = "Invalid category ID" });
 
                 mapper.Map(dto, product);
+                product.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
                 product.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
