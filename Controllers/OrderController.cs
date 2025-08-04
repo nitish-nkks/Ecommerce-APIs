@@ -32,7 +32,7 @@ namespace Ecommerce_APIs.Controllers
 
                 Customer? customer = null;
                 InternalUser? staff = null;
-                if (userType.Equals("Customer", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(userType, "Customer", StringComparison.OrdinalIgnoreCase))
                 {
                     customer = await dbContext.Customers.FindAsync(userId.Value);
                     if (customer == null)
@@ -77,11 +77,21 @@ namespace Ecommerce_APIs.Controllers
 
                 decimal totalAmount = cartItems.Sum(item => item.Product.Price * item.Quantity);
 
+                // Fetch and validate the chosen address (only for customers)
+                var address = await dbContext.CustomerAddresses
+                    .FirstOrDefaultAsync(a=> 
+                    a.Id == dto.CustomerAddressId && 
+                    a.CustomerId == userId.Value &&
+                    a.IsActive);
+                if (address == null)
+                    return BadRequest(new { success = false, message = "Invalid shipping address." });
+
                 var order = new Order
                 {
                     CustomerId = customer?.Id,
+                    CustomerAddressId = address?.Id ?? 0,
+                    ShippingAddress = address != null ? address.AddressLine : string.Empty,
                     InternalUserId = staff?.Id,
-                    ShippingAddress = dto.ShippingAddress,
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Order_Placed,

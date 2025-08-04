@@ -2,7 +2,7 @@
 {
     public class CreateOrderDto
     {
-        public string ShippingAddress { get; set; }
+        public int CustomerAddressId { get; set; }
         public string PaymentMethod { get; set; }
     }
 

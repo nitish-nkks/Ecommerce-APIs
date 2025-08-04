@@ -33,6 +33,10 @@ namespace Ecommerce_APIs.Models.Entites
         public int? UpdatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
+
+        [ForeignKey("CustomerAddress")]
+        public int CustomerAddressId { get; set; }
+        public CustomerAddress CustomerAddress { get; set; }
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 
