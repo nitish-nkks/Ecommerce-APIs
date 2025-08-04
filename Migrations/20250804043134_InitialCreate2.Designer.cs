@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250731070647_AddLastLoginToUsers")]
-    partial class AddLastLoginToUsers
+    [Migration("20250804043134_InitialCreate2")]
+    partial class InitialCreate2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,10 @@ namespace Ecommerce_APIs.Migrations
 
                     b.Property<int>("CreatedById")
                         .HasColumnType("int");
+
+                    b.Property<string>("CreatedByType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
@@ -160,9 +164,6 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int");
-
                     b.Property<string>("GuestId")
                         .HasColumnType("longtext");
 
@@ -175,9 +176,14 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("CustomerId");
+                    b.Property<string>("UserType")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
@@ -256,6 +262,10 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("is_active");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("last_login_at");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -453,6 +463,9 @@ namespace Ecommerce_APIs.Migrations
 
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
+
+                    b.Property<string>("CreatedByUserType")
+                        .HasColumnType("longtext");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
@@ -695,7 +708,7 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Category", b =>
                 {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", "CreatedBy")
+                    b.HasOne("Ecommerce_APIs.Models.Entites.InternalUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -706,7 +719,7 @@ namespace Ecommerce_APIs.Migrations
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", "UpdatedBy")
+                    b.HasOne("Ecommerce_APIs.Models.Entites.InternalUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -720,17 +733,11 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.CartItem", b =>
                 {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", "Customer")
-                        .WithMany("CartItems")
-                        .HasForeignKey("CustomerId");
-
                     b.HasOne("Ecommerce_APIs.Models.Entities.Product", "Product")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Customer");
 
                     b.Navigation("Product");
                 });
@@ -838,8 +845,6 @@ namespace Ecommerce_APIs.Migrations
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Customer", b =>
                 {
                     b.Navigation("Addresses");
-
-                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Order", b =>

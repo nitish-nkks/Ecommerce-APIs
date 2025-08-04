@@ -26,18 +26,28 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var customerIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
 
-                if (string.IsNullOrEmpty(customerIdClaim) || !int.TryParse(customerIdClaim, out int customerId))
+                if (userId == null)
                     return Unauthorized(new { success = false, message = "Invalid token or user not found" });
 
-                var user = await dbContext.Customers.FindAsync(customerId);
-                if (user == null)
-                    return BadRequest(new { success = false, message = $"User with ID {customerId} does not exist." });
-
+                Customer? customer = null;
+                InternalUser? staff = null;
+                if (userType.Equals("Customer", StringComparison.OrdinalIgnoreCase))
+                {
+                    customer = await dbContext.Customers.FindAsync(userId.Value);
+                    if (customer == null)
+                        return BadRequest(new { success = false, message = $"Customer with ID {userId} does not exist." });
+                }
+                else
+                {
+                    staff = await dbContext.InternalUsers.FindAsync(userId.Value);
+                    if (staff == null)
+                        return BadRequest(new { success = false, message = $"Internal user with ID {userId} does not exist." });
+                }
                 var cartItems = await dbContext.CartItems
                     .Include(c => c.Product)
-                    .Where(c => c.UserId == customerId && c.IsActive)
+                    .Where(c => c.UserId == userId.Value && c.UserType == userType && c.IsActive)
                     .ToListAsync();
 
                 if (!cartItems.Any())
@@ -46,26 +56,19 @@ namespace Ecommerce_APIs.Controllers
                 foreach (var item in cartItems)
                 {
                     var product = item.Product;
-
                     if (item.Quantity < product.MinOrderQuantity)
-
                         return BadRequest(new
                         {
                             success = false,
                             message = $"Minimum order quantity for '{product.Name}' is {product.MinOrderQuantity}."
                         });
-
-
                     if (item.Quantity > product.MaxOrderQuantity)
                         return BadRequest(new
                         {
                             success = false,
                             message = $"Maximum order quantity for '{product.Name}' is {product.MaxOrderQuantity}."
                         });
-
-
                     if (item.Quantity > product.StockQuantity)
-
                         return BadRequest(new
                         {
                             success = false,
@@ -73,18 +76,18 @@ namespace Ecommerce_APIs.Controllers
                         });
                 }
 
-
                 decimal totalAmount = cartItems.Sum(item => item.Product.Price * item.Quantity);
 
                 var order = new Order
                 {
-                    CustomerId = customerId,
+                    CustomerId = customer?.Id,
+                    InternalUserId = staff?.Id,
                     ShippingAddress = dto.ShippingAddress,
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Pending,
-                    CreatedBy = customerId,
-                    CreatedByUserType = TokenHelper.GetUserTypeFromClaims(User),
+                    CreatedBy = userId.Value,
+                    CreatedByUserType = userType,
                     CreatedAt = DateTime.Now,
                     IsActive = true,
                     OrderItems = cartItems.Select(item => new OrderItem
@@ -97,21 +100,17 @@ namespace Ecommerce_APIs.Controllers
                 };
 
                 foreach (var item in cartItems)
-                {
                     item.Product.StockQuantity -= item.Quantity;
-                }
-
 
                 dbContext.Orders.Add(order);
-
                 dbContext.CartItems.RemoveRange(cartItems);
-
                 await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, orderId = order.Id, message = "Order created successfully" });
             }
             catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
                 return StatusCode(500, new { success = false, message = "Internal server error", error = ex.Message });
             }
         }

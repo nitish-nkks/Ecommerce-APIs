@@ -71,13 +71,13 @@ namespace Ecommerce_APIs.Controllers
         }
 
 
-        [HttpGet("{customerId}")]
-        public async Task<IActionResult> GetCartItems(int customerId)
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetCartItems(int userId)
         {
             try
             {
                 var cartItems = await dbContext.CartItems
-                    .Where(ci => ci.UserId == customerId && ci.IsActive)
+                    .Where(ci => ci.UserId == userId && ci.IsActive)
                     .Include(ci => ci.Product)
                         .ThenInclude(p => p.ProductImages)
                     .ToListAsync();

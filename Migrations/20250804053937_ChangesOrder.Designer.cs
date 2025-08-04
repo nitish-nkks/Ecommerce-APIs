@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250801120125_AddUserTypeToCartItem")]
-    partial class AddUserTypeToCartItem
+    [Migration("20250804053937_ChangesOrder")]
+    partial class ChangesOrder
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -164,9 +164,6 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int");
-
                     b.Property<string>("GuestId")
                         .HasColumnType("longtext");
 
@@ -187,8 +184,6 @@ namespace Ecommerce_APIs.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ProductId");
 
@@ -472,7 +467,10 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<string>("CreatedByUserType")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("InternalUserId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -501,6 +499,8 @@ namespace Ecommerce_APIs.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("InternalUserId");
 
                     b.ToTable("Orders");
                 });
@@ -738,10 +738,6 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.CartItem", b =>
                 {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", null)
-                        .WithMany("CartItems")
-                        .HasForeignKey("CustomerId");
-
                     b.HasOne("Ecommerce_APIs.Models.Entities.Product", "Product")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductId")
@@ -777,11 +773,15 @@ namespace Ecommerce_APIs.Migrations
                 {
                     b.HasOne("Ecommerce_APIs.Models.Entites.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("Ecommerce_APIs.Models.Entites.InternalUser", "InternalUser")
+                        .WithMany()
+                        .HasForeignKey("InternalUserId");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("InternalUser");
                 });
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.OrderItem", b =>
@@ -854,8 +854,6 @@ namespace Ecommerce_APIs.Migrations
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Customer", b =>
                 {
                     b.Navigation("Addresses");
-
-                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Order", b =>

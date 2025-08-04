@@ -40,6 +40,7 @@ namespace Ecommerce_APIs.Controllers
                     foreach (var item in guestCartItems)
                     {
                         item.UserId = customer.Id;
+                        item.UserType = "Customer";
                         item.GuestId = null;
                     }
 
@@ -77,6 +78,22 @@ namespace Ecommerce_APIs.Controllers
             {
                 if (!PasswordHasherHelper.VerifyPassword(internalUser.PasswordHash, request.Password))
                     return Unauthorized(new { message = "Invalid email or password" });
+
+                if (!string.IsNullOrEmpty(request.GuestId))
+                {
+                    var guestCartItems = await _context.CartItems
+                        .Where(c => c.GuestId == request.GuestId && c.UserId == null)
+                        .ToListAsync();
+
+                    foreach (var item in guestCartItems)
+                    {
+                        item.UserId = internalUser.Id;
+                        item.UserType = "InternalUser";
+                        item.GuestId = null;
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
 
                 internalUser.LastLoginAt = DateTime.Now;
                 await _context.SaveChangesAsync();

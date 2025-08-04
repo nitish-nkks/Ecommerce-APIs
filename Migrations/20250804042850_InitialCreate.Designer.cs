@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250801122202_RemoveCustomerIdColumnFromCartItem")]
-    partial class RemoveCustomerIdColumnFromCartItem
+    [Migration("20250804042850_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -164,9 +164,6 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("CustomerId")
-                        .HasColumnType("int");
-
                     b.Property<string>("GuestId")
                         .HasColumnType("longtext");
 
@@ -187,8 +184,6 @@ namespace Ecommerce_APIs.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ProductId");
 
@@ -738,10 +733,6 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.CartItem", b =>
                 {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Customer", null)
-                        .WithMany("CartItems")
-                        .HasForeignKey("CustomerId");
-
                     b.HasOne("Ecommerce_APIs.Models.Entities.Product", "Product")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductId")
@@ -854,8 +845,6 @@ namespace Ecommerce_APIs.Migrations
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Customer", b =>
                 {
                     b.Navigation("Addresses");
-
-                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Order", b =>

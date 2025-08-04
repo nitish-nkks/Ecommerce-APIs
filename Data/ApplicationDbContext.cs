@@ -71,10 +71,28 @@ namespace Ecommerce_APIs.Data
 
             // for adding oder items to the order
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.Customer)
-                .WithMany()         
-                .HasForeignKey(o => o.CustomerId);
+                .HasOne(o => o.InternalUser)
+                .WithMany()
+                .HasForeignKey(o => o.InternalUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Customer)
+                .WithMany()
+                .HasForeignKey(o => o.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.Product)
+                .WithMany(p => p.CartItems)
+                .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(o => o.OrderItems)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<OrderItem>()
                   .HasOne(oi => oi.Product)
@@ -103,6 +121,11 @@ namespace Ecommerce_APIs.Data
                 .HasOne(fs => fs.Product)
                 .WithMany()
                 .HasForeignKey(fs => fs.ProductId);
+
+
+            modelBuilder.Entity<Customer>()
+                .Ignore(c => c.CartItems);
+
 
         }
     }

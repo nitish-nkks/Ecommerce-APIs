@@ -14,8 +14,13 @@ namespace Ecommerce_APIs.Models.Entites
     {
         public int Id { get; set; }
 
+        [ForeignKey("InternalUser")]
+        public int? InternalUserId { get; set; }
+        public InternalUser? InternalUser { get; set; }
+
         [ForeignKey("Customer")]
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
+        public Customer? Customer { get; set; }
         public string? CreatedByUserType { get; set; }
         public string ShippingAddress { get; set; }
         public string PaymentMethod { get; set; }
@@ -26,8 +31,6 @@ namespace Ecommerce_APIs.Models.Entites
         public int? UpdatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
-
-        public Customer Customer { get; set; }
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 
