@@ -50,7 +50,7 @@ namespace Ecommerce_APIs.Models.Entites
         [Column("department")]
         public string? Department { get; set; }
 
-        [Column("is_active")]
+        [Column("IsActive")]
         public bool IsActive { get; set; } = true;
 
         [Column("created_at")]

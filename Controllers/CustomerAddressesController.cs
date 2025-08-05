@@ -2,6 +2,7 @@
 using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.CustomerAddressDtos;
 using Ecommerce_APIs.Models.Entites;
+using Ecommerce_APIs.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,12 @@ namespace Ecommerce_APIs.Controllers
     public class CustomerAddressesController : ControllerBase
     {
         private readonly ApplicationDbContext dbContext;
+        private readonly PincodeService pincodeService;
 
-        public CustomerAddressesController(ApplicationDbContext dbContext)
+        public CustomerAddressesController(ApplicationDbContext dbContext,PincodeService pincodeService)
         {
             this.dbContext = dbContext;
+            this.pincodeService = pincodeService;
         }
 
         [HttpGet]
@@ -46,6 +49,12 @@ namespace Ecommerce_APIs.Controllers
             if (userId == null || !userType.Equals("Customer", StringComparison.OrdinalIgnoreCase))
             {
                 return Unauthorized(new { success = false, message = "Invalid token or user type." });
+            }
+
+            var pincodeCheckResult = await pincodeService.CheckPincodeAsync(dto.ZipCode);
+            if (!pincodeCheckResult.Deliverable)
+            {
+                return BadRequest(new { success = false, message = "Sorry, we don't deliver to this area. Please use a different address." });
             }
 
             var customer = await dbContext.Customers.FindAsync(userId.Value);

@@ -29,7 +29,7 @@ namespace Ecommerce_APIs.Models.Entites
         [Column("zip_code")]
         public string ZipCode { get; set; }
 
-        [Column("is_active")]
+        [Column("IsActive")]
         public bool IsActive { get; set; } = true;
 
         public Customer Customer { get; set; }

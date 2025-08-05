@@ -36,7 +36,7 @@ namespace Ecommerce_APIs.Models.Entites
         public required string PasswordHash { get; set; }
 
         [Required]
-        [Column("is_active")]
+        [Column("IsActive")]
         public bool IsActive { get; set; } = true;
 
         [Required]
