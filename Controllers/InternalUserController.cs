@@ -26,8 +26,8 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                if (await _context.InternalUsers.AnyAsync(u => u.Email == dto.Email)||
-                    await _context.Customers.AllAsync(u => u.Email == dto.Email))
+                if (await _context.InternalUsers.AnyAsync(u => u.Email == dto.Email) ||
+                        await _context.Customers.AnyAsync(c => c.Email == dto.Email))
                 {
                     return BadRequest(new
                     {

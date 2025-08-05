@@ -48,7 +48,9 @@ namespace Ecommerce_APIs.Controllers
                 }
 
                 bool exists = await _context.Products
-                    .AnyAsync(p => p.IsActive && p.Name.Trim().ToLower() == normalizedProductName);
+                           .AnyAsync(p => p.IsActive &&
+                           p.Name.Trim().ToLower() == normalizedProductName &&
+                           p.CategoryId == dto.CategoryId);
 
                 if (exists)
                 {

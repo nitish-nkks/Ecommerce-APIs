@@ -21,32 +21,27 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> PostOrder([FromBody] CreateOrderDto dto)
         {
             try
             {
                 var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
 
-                if (userId == null)
-                    return Unauthorized(new { success = false, message = "Invalid token or user not found" });
+                if (userId == null || !string.Equals(userType, "Customer", StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(403, new { success = false, message = "Only customers are authorized to place orders." });
+                }
 
-                Customer? customer = null;
-                InternalUser? staff = null;
-                if (string.Equals(userType, "Customer", StringComparison.OrdinalIgnoreCase))
+                var customer = await dbContext.Customers.FindAsync(userId.Value);
+                if (customer == null)
                 {
-                    customer = await dbContext.Customers.FindAsync(userId.Value);
-                    if (customer == null)
-                        return BadRequest(new { success = false, message = $"Customer with ID {userId} does not exist." });
+                    return BadRequest(new { success = false, message = $"Customer with ID {userId} does not exist." });
                 }
-                else
-                {
-                    staff = await dbContext.InternalUsers.FindAsync(userId.Value);
-                    if (staff == null)
-                        return BadRequest(new { success = false, message = $"Internal user with ID {userId} does not exist." });
-                }
+
                 var cartItems = await dbContext.CartItems
                     .Include(c => c.Product)
-                    .Where(c => c.UserId == userId.Value && c.UserType == userType && c.IsActive)
+                    .Where(c => c.UserId == userId.Value && c.UserType == "Customer")
                     .ToListAsync();
 
                 if (!cartItems.Any())
@@ -56,47 +51,39 @@ namespace Ecommerce_APIs.Controllers
                 {
                     var product = item.Product;
                     if (item.Quantity < product.MinOrderQuantity)
-                        return BadRequest(new
-                        {
-                            success = false,
-                            message = $"Minimum order quantity for '{product.Name}' is {product.MinOrderQuantity}."
-                        });
+                        return BadRequest(new { success = false, message = $"Minimum order quantity for '{product.Name}' is {product.MinOrderQuantity}." });
                     if (item.Quantity > product.MaxOrderQuantity)
-                        return BadRequest(new
-                        {
-                            success = false,
-                            message = $"Maximum order quantity for '{product.Name}' is {product.MaxOrderQuantity}."
-                        });
+                        return BadRequest(new { success = false, message = $"Maximum order quantity for '{product.Name}' is {product.MaxOrderQuantity}." });
                     if (item.Quantity > product.StockQuantity)
-                        return BadRequest(new
-                        {
-                            success = false,
-                            message = $"Only {product.StockQuantity} units available for '{product.Name}'."
-                        });
+                        return BadRequest(new { success = false, message = $"Only {product.StockQuantity} units available for '{product.Name}'." });
                 }
 
-                decimal totalAmount = cartItems.Sum(item => item.Product.Price * item.Quantity);
+                if (dto.CustomerAddressId <= 0)
+                {
+                    return BadRequest(new { success = false, message = "Shipping address ID is required." });
+                }
 
-                // Fetch and validate the chosen address (only for customers)
-                var address = await dbContext.CustomerAddresses
-                    .FirstOrDefaultAsync(a=> 
-                    a.Id == dto.CustomerAddressId && 
-                    a.CustomerId == userId.Value &&
-                    a.IsActive);
-                if (address == null)
-                    return BadRequest(new { success = false, message = "Invalid shipping address." });
+                var shippingAddress = await dbContext.CustomerAddresses
+                    .FirstOrDefaultAsync(a =>
+                        a.Id == dto.CustomerAddressId &&
+                        a.CustomerId == userId.Value && 
+                        a.IsActive);
+
+                if (shippingAddress == null)
+                    return BadRequest(new { success = false, message = "Invalid or unauthorized shipping address provided." });
+
+                decimal totalAmount = cartItems.Sum(item => item.Product.Price * item.Quantity);
+                string formattedAddress = $"{shippingAddress.AddressLine}, {shippingAddress.City}, {shippingAddress.State} - {shippingAddress.ZipCode}";
 
                 var order = new Order
                 {
-                    CustomerId = customer?.Id,
-                    CustomerAddressId = address?.Id ?? 0,
-                    ShippingAddress = address != null ? address.AddressLine : string.Empty,
-                    InternalUserId = staff?.Id,
+                    CustomerId = customer.Id,
+                    CustomerAddressId = shippingAddress.Id,
+                    ShippingAddress = formattedAddress,
                     PaymentMethod = dto.PaymentMethod,
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Order_Placed,
                     CreatedBy = userId.Value,
-                    CreatedByUserType = userType,
                     CreatedAt = DateTime.Now,
                     IsActive = true,
                     OrderItems = cartItems.Select(item => new OrderItem
@@ -108,11 +95,14 @@ namespace Ecommerce_APIs.Controllers
                     }).ToList()
                 };
 
-                foreach (var item in cartItems)
-                    item.Product.StockQuantity -= item.Quantity;
-
                 dbContext.Orders.Add(order);
                 dbContext.CartItems.RemoveRange(cartItems);
+
+                foreach (var item in cartItems)
+                {
+                    item.Product.StockQuantity -= item.Quantity;
+                }
+
                 await dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, orderId = order.Id, message = "Order created successfully" });

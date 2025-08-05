@@ -74,12 +74,6 @@ namespace Ecommerce_APIs.Data
 
             // for adding oder items to the order
             modelBuilder.Entity<Order>()
-                .HasOne(o => o.InternalUser)
-                .WithMany()
-                .HasForeignKey(o => o.InternalUserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Order>()
                 .HasOne(o => o.Customer)
                 .WithMany()
                 .HasForeignKey(o => o.CustomerId)

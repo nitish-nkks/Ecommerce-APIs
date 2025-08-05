@@ -461,13 +461,10 @@ namespace Ecommerce_APIs.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
-                    b.Property<string>("CreatedByUserType")
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("CustomerId")
+                    b.Property<int>("CustomerAddressId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("InternalUserId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -495,9 +492,9 @@ namespace Ecommerce_APIs.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CustomerAddressId");
 
-                    b.HasIndex("InternalUserId");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("Orders");
                 });
@@ -848,19 +845,20 @@ namespace Ecommerce_APIs.Migrations
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Order", b =>
                 {
+                    b.HasOne("Ecommerce_APIs.Models.Entites.CustomerAddress", "CustomerAddress")
+                        .WithMany()
+                        .HasForeignKey("CustomerAddressId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Ecommerce_APIs.Models.Entites.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Ecommerce_APIs.Models.Entites.InternalUser", "InternalUser")
-                        .WithMany()
-                        .HasForeignKey("InternalUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Customer");
 
-                    b.Navigation("InternalUser");
+                    b.Navigation("CustomerAddress");
                 });
 
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.OrderItem", b =>

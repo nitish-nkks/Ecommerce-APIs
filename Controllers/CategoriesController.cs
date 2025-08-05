@@ -141,7 +141,9 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
                 bool exists = await _context.Categories
-                     .AnyAsync(c => c.IsActive && c.Name.Trim().ToLower() == normalizedNewName);
+                             .AnyAsync(c => c.IsActive &&
+                             c.Name.Trim().ToLower() == normalizedNewName &&
+                             c.ParentCategoryId == dto.ParentCategoryId);
                 if (exists)
                 {
                     return BadRequest(new
