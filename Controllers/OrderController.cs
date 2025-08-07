@@ -96,6 +96,17 @@ namespace Ecommerce_APIs.Controllers
                 };
 
                 dbContext.Orders.Add(order);
+                await dbContext.SaveChangesAsync();
+                dbContext.OrderStatusHistories.Add(new OrderStatusHistory
+                {
+                    OrderId = order.Id,
+                    Status = OrderStatus.Order_Placed,
+                    Remarks = "Order placed by customer.",
+                    ChangedByUserId = userId,
+                    ChangedByUserType = userType ?? "Customer",
+                    ChangedAt = DateTime.Now
+                });
+
                 dbContext.CartItems.RemoveRange(cartItems);
 
                 foreach (var item in cartItems)
