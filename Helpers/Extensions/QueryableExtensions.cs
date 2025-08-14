@@ -69,8 +69,9 @@ namespace Ecommerce_APIs.Helpers.Extensions
             GlobalFilterDto filter)
         {
             var total = await query.CountAsync();
+            int _skip = filter.Page == 1 ? 0 : (filter.Page - 1);
             var items = await query
-                .Skip((filter.Page - 1) * filter.PageSize)
+                .Skip((_skip) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 

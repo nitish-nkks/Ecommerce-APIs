@@ -15,6 +15,12 @@ namespace Ecommerce_APIs.Models.Entites
         [Column(TypeName = "decimal(10,2)")]
         public decimal Price { get; set; }
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal DiscountPercentage { get; set; }
+        public bool IsFeatured { get; set; } = false;
+        public bool IsNewProduct { get; set; } = false;
+        public bool IsBestSeller { get; set; } = false;
+        public string? Image { get; set; }
         public int StockQuantity { get; set; }
         public int MinOrderQuantity { get; set; }
         public int MaxOrderQuantity => StockQuantity;
