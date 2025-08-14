@@ -99,7 +99,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowQA",
+        options.AddPolicy("AllowQA",
         policy => policy
             .WithOrigins("http://localhost:5173", "https://abc-api-qa.abisaio.com")
             .AllowAnyHeader()
@@ -108,15 +108,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+
 app.UseCors("AllowQA");
 
 app.UseStaticFiles();
 
-//if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

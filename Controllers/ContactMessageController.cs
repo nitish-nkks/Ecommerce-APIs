@@ -50,8 +50,8 @@ namespace Ecommerce_APIs.Controllers
                 _context.ContactMessages.Add(contact);
                 await _context.SaveChangesAsync();
 
-                var contactEmail = _config["Contact:RecipientEmail"] ?? "example@gmail.com";
-                await _emailService.SendContactNotificationEmail(contact, contactEmail);
+                //var contactEmail = _config["Contact:RecipientEmail"] ?? "example@gmail.com";
+                //await _emailService.SendContactNotificationEmail(contact, contactEmail);
 
                 return Ok(new
                 {

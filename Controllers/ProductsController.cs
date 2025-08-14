@@ -4,7 +4,7 @@ using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Helpers.Extensions;
 using Ecommerce_APIs.Models.DTOs.GlobalFilterDtos;
 using Ecommerce_APIs.Models.DTOs.ProductDtos;
-using Ecommerce_APIs.Models.Entities;
+using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -83,6 +83,7 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] GlobalFilterDto filter)
         {
             try

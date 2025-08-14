@@ -166,5 +166,41 @@ namespace Ecommerce_APIs.Controllers
                 });
             }
         }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetInternalUserById(int id)
+        {
+            try
+            {
+                var user = await _context.InternalUsers.FindAsync(id);
+
+                if (user == null)
+                {
+                    return NotFound(new
+                    {
+                        Succeeded = false,
+                        Message = $"No Internal User found with ID {id}.",
+                        Data = (object?)null
+                    });
+                }
+
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = $"Internal User with ID {id} retrieved successfully.",
+                    Data = user
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while retrieving the internal user.",
+                    Data = (object?)null
+                });
+            }
+        }
+
     }
 }
