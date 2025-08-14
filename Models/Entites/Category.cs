@@ -1,6 +1,4 @@
 ﻿using Ecommerce_APIs.Models.Entites;
-using Ecommerce_APIs.Models.Entities;
-
 public class Category
 {
     public int Id { get; set; }

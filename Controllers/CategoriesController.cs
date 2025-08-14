@@ -2,7 +2,6 @@
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Models.DTOs.CatagoriesDtos;
-using Ecommerce_APIs.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

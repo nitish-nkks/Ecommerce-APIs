@@ -1,6 +1,4 @@
-﻿using Ecommerce_APIs.Models.Entities;
-
-namespace Ecommerce_APIs.Models.Entites
+﻿namespace Ecommerce_APIs.Models.Entites
 {
     public class OrderItem
     {

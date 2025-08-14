@@ -97,26 +97,26 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowLocalhost5173",
-//        policy => policy
-//            .WithOrigins("http://localhost:5173")
-//            .AllowAnyHeader()
-//            .AllowAnyMethod());
-//})
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost5173",
+        policy => policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
-//app.UseCors("AllowLocalhost5173");
+app.UseCors("AllowLocalhost5173");
 
 app.UseStaticFiles();
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 
