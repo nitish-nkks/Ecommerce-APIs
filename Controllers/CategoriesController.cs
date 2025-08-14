@@ -23,6 +23,7 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             try
