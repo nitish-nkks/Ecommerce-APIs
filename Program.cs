@@ -51,7 +51,7 @@ builder.Services.AddAuthorization();
 // Add Controllers and JSON settings
 builder.Services.AddControllers()
     .AddJsonOptions(x =>
-        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve);
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
