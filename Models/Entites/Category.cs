@@ -7,9 +7,9 @@ public class Category
     public string Name { get; set; } = null!;
 
     public int? ParentCategoryId { get; set; } = null;
-    public string Image { get; set; } = null;
-    public string Description { get; set; } = null;
-    public string Icon { get; set; } = null;
+    public string? Image { get; set; } = null;
+    public string? Description { get; set; } = null;
+    public string? Icon { get; set; } = null;
     public Category? ParentCategory { get; set; }
     public ICollection<Category>? SubCategories { get; set; }
 
