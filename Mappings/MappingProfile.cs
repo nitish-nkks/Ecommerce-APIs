@@ -7,7 +7,6 @@ using Ecommerce_APIs.Models.DTOs.ProductDtos;
 using Ecommerce_APIs.Models.DTOs.StaticPageDtos;
 using Ecommerce_APIs.Models.DTOs.UserDtos;
 using Ecommerce_APIs.Models.Entites;
-using Ecommerce_APIs.Models.Entities;
 
 namespace Ecommerce_APIs.Mappings
 {
