@@ -52,6 +52,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
+
         [HttpGet("list")]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
         {
@@ -103,6 +104,7 @@ namespace Ecommerce_APIs.Controllers
                 return Ok(new
                 {
                     Succeeded = true,
+
                     Message = "Category subtree built successfully.",
                     Data = root
                 });
@@ -113,12 +115,12 @@ namespace Ecommerce_APIs.Controllers
                 return StatusCode(500, new
                 {
                     Succeeded = false,
+
                     Message = "An error occurred while building the category subtree.",
                     Data = (string?)null
                 });
             }
         }
-
 
         [HttpGet("tree")]
         public async Task<IActionResult> GetTree()
