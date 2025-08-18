@@ -30,7 +30,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var product = await dbContext.Products
-                    .Include(p => p.Image)
+                    //.Include(p => p.Image)
                     .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
 
                 if (product == null)
