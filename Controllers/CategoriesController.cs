@@ -52,7 +52,59 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        
+        [HttpGet("categories-with-products")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllCategoriesWithProducts()
+        {
+            try
+            {
+                var categories = await _context.Categories
+                    .Include(c => c.SubCategories)
+                        .ThenInclude(sc => sc.Products)
+                    .Include(c => c.Products)
+                    .Select(c => new
+                    {
+                        CategoryId = c.Id,
+                        CategoryName = c.Name,
+                        Products = c.Products.Select(p => new
+                        {
+                            ProductId = p.Id,
+                            ProductName = p.Name,
+                            p.Image
+                        }).ToList(),
+                        SubCategories = c.SubCategories.Select(sc => new
+                        {
+                            SubCategoryId = sc.Id,
+                            SubCategoryName = sc.Name,
+                            Products = sc.Products.Select(p => new
+                            {
+                                ProductId = p.Id,
+                                ProductName = p.Name,
+                                p.Image
+                            }).ToList()
+                        }).ToList()
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Categories with products fetched successfully.",
+                    Data = categories
+                });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while fetching categories and products.",
+                    Data = (string?)null
+                });
+            }
+        }
+
         [HttpGet("tree")]
         public async Task<IActionResult> GetTree()
         {
