@@ -62,6 +62,7 @@ namespace Ecommerce_APIs.Controllers
                     .Include(c => c.SubCategories)
                         .ThenInclude(sc => sc.Products)
                     .Include(c => c.Products)
+                    .Where(cat => cat.ParentCategoryId == null)
                     .Select(c => new
                     {
                         CategoryId = c.Id,
