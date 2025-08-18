@@ -11,6 +11,7 @@ namespace Ecommerce_APIs.Models.DTOs.ProductDtos
 
         [Required]
         public decimal Price { get; set; }
+        public decimal DiscountPercentage { get; set; }
 
         [Required]
         public int StockQuantity { get; set; }
@@ -20,5 +21,7 @@ namespace Ecommerce_APIs.Models.DTOs.ProductDtos
 
         [Required]
         public int MinOrderQuantity { get; set; }
+        public List<string> ProductImages { get; set; } = new List<string>();
+
     }
 }

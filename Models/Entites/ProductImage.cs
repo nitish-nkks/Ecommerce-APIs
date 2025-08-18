@@ -8,7 +8,6 @@
         public Product Product { get; set; }
 
         public string ImageUrl { get; set; }
-
         public bool IsPrimary { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

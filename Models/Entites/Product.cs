@@ -36,8 +36,9 @@ namespace Ecommerce_APIs.Models.Entites
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
-        public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
         public ICollection<CartItem> CartItems { get; set; }
+        public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+
 
 
     }

@@ -67,6 +67,15 @@ namespace Ecommerce_APIs.Controllers
                     return BadRequest(new { success = false, message = "Invalid category ID" , Data = (string?)null });
 
                 var product = mapper.Map<Product>(dto);
+                if (dto.ProductImages != null && dto.ProductImages.Any())
+                {
+                    product.Image = string.Join(",", dto.ProductImages);
+                }
+                else
+                {
+                    product.Image = string.Empty;
+                }
+
                 product.Name = dto.Name.Trim();
                 product.CreatedBy = userId;
                 product.CreatedAt = DateTime.Now;
@@ -146,10 +155,33 @@ namespace Ecommerce_APIs.Controllers
                 if (product == null)
                     return NotFound(new { success = false, message = "Product not found" });
 
+                bool exists = await _context.Products
+                                     .AnyAsync(p => p.IsActive &&
+                                                    p.Name.Trim().ToLower() == dto.Name.Trim().ToLower() &&
+                                                    p.CategoryId == dto.CategoryId &&
+                                                    p.Id != id);
+                if (exists)
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "A product with the same name and category already exists.",
+                        Data = (string?)null
+                    });
+                }
+
                 if (!await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId))
                     return BadRequest(new { success = false, message = "Invalid category ID" });
 
                 mapper.Map(dto, product);
+                if (dto.ProductImages != null)
+                {
+                    product.Image = string.Join(",", dto.ProductImages);
+                }
+                product.IsFeatured = dto.IsFeatured;
+                product.IsNewProduct = dto.IsNewProduct;
+                product.IsBestSeller = dto.IsBestSeller;
+                product.DiscountPercentage = dto.DiscountPercentage;
                 product.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
                 product.UpdatedAt = DateTime.Now;
 

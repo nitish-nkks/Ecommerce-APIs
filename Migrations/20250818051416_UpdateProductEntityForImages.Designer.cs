@@ -4,6 +4,7 @@ using Ecommerce_APIs.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce_APIs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250818051416_UpdateProductEntityForImages")]
+    partial class UpdateProductEntityForImages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -733,40 +736,6 @@ namespace Ecommerce_APIs.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Ecommerce_APIs.Models.Entites.ProductImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductImages");
-                });
-
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.StaticPage", b =>
                 {
                     b.Property<int>("Id")
@@ -956,17 +925,6 @@ namespace Ecommerce_APIs.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Ecommerce_APIs.Models.Entites.ProductImage", b =>
-                {
-                    b.HasOne("Ecommerce_APIs.Models.Entites.Product", "Product")
-                        .WithMany("ProductImages")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("Category", b =>
                 {
                     b.Navigation("Products");
@@ -987,8 +945,6 @@ namespace Ecommerce_APIs.Migrations
             modelBuilder.Entity("Ecommerce_APIs.Models.Entites.Product", b =>
                 {
                     b.Navigation("CartItems");
-
-                    b.Navigation("ProductImages");
                 });
 #pragma warning restore 612, 618
         }

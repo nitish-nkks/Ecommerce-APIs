@@ -134,7 +134,6 @@ namespace Ecommerce_APIs.Controllers
                     .Where(o => o.CustomerId == customerId && o.IsActive)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
-                            .ThenInclude(p => p.ProductImages)
                     .ToList();
 
                 if (!orders.Any())
@@ -151,7 +150,6 @@ namespace Ecommerce_APIs.Controllers
                     {
                         ProductId = oi.ProductId,
                         ProductName = oi.Product.Name,
-                        ProductImageUrl = oi.Product.ProductImages.FirstOrDefault()?.ImageUrl,
                         Quantity = oi.Quantity,
                         UnitPrice = oi.UnitPrice,
                         TotalPrice = oi.TotalPrice
@@ -174,7 +172,6 @@ namespace Ecommerce_APIs.Controllers
                 var order = dbContext.Orders
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
-                            .ThenInclude(p => p.ProductImages)
                     .FirstOrDefault(o => o.Id == orderId && o.IsActive);
 
                 if (order == null)
@@ -191,7 +188,6 @@ namespace Ecommerce_APIs.Controllers
                     {
                         ProductId = oi.ProductId,
                         ProductName = oi.Product.Name,
-                        ProductImageUrl = oi.Product.ProductImages.FirstOrDefault()?.ImageUrl,
                         Quantity = oi.Quantity,
                         UnitPrice = oi.UnitPrice,
                         TotalPrice = oi.TotalPrice
