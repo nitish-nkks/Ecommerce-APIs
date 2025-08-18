@@ -30,7 +30,7 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var product = await dbContext.Products
-                    .Include(p => p.ProductImages)
+                    .Include(p => p.Image)
                     .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
 
                 if (product == null)
@@ -79,7 +79,7 @@ namespace Ecommerce_APIs.Controllers
                 var cartItems = await dbContext.CartItems
                     .Where(ci => ci.UserId == userId && ci.IsActive)
                     .Include(ci => ci.Product)
-                        .ThenInclude(p => p.ProductImages)
+                        .ThenInclude(p => p.Image)
                     .ToListAsync();
 
                 var response = cartItems.Select(ci => new CartItemResponseDto
@@ -87,7 +87,6 @@ namespace Ecommerce_APIs.Controllers
                     Id = ci.Id,
                     ProductId = ci.ProductId,
                     ProductName = ci.Product.Name,
-                    ProductImageUrl = ci.Product.ProductImages.FirstOrDefault()?.ImageUrl,
                     UnitPrice = ci.Product.Price,
                     Quantity = ci.Quantity
                 }).ToList();

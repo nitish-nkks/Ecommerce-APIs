@@ -52,46 +52,61 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [HttpGet("categories-with-products")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAllCategoriesWithProducts()
+
+        [HttpGet("list")]
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
+        {
+            var categories = await _context.Categories
+                .Select(c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ParentCategoryId = c.ParentCategoryId == null ? null : c.ParentCategoryId,
+                })
+                .ToListAsync();
+
+            if (categories == null || categories.Count == 0)
+            {
+                return NotFound("No categories found.");
+            }
+
+            return Ok(categories);
+        }
+
+        [HttpGet("tree/{id:int}")]
+        public async Task<IActionResult> GetSubTree(int id)
         {
             try
             {
-                var categories = await _context.Categories
-                    .Include(c => c.SubCategories)
-                        .ThenInclude(sc => sc.Products)
-                    .Include(c => c.Products)
-                    .Where(cat => cat.ParentCategoryId == null)
-                    .Select(c => new
+                var all = await _context.Categories.ToListAsync();
+
+                List<Category> Build(int parentId) =>
+                    all.Where(c => c.ParentCategoryId == parentId)
+                       .Select(c => {
+                           c.SubCategories = Build(c.Id);
+                           return c;
+                       })
+                       .ToList();
+
+                var root = all.FirstOrDefault(c => c.Id == id);
+                if (root == null)
+                {
+                    return NotFound(new
                     {
-                        CategoryId = c.Id,
-                        CategoryName = c.Name,
-                        Products = c.Products.Select(p => new
-                        {
-                            ProductId = p.Id,
-                            ProductName = p.Name,
-                            p.Image
-                        }).ToList(),
-                        SubCategories = c.SubCategories.Select(sc => new
-                        {
-                            SubCategoryId = sc.Id,
-                            SubCategoryName = sc.Name,
-                            Products = sc.Products.Select(p => new
-                            {
-                                ProductId = p.Id,
-                                ProductName = p.Name,
-                                p.Image
-                            }).ToList()
-                        }).ToList()
-                    })
-                    .ToListAsync();
+                        Succeeded = false,
+                        Message = "Category not found.",
+                        Data = (string?)null
+                    });
+                }
+
+                root.SubCategories = Build(root.Id);
 
                 return Ok(new
                 {
                     Succeeded = true,
-                    Message = "Categories with products fetched successfully.",
-                    Data = categories
+
+                    Message = "Category subtree built successfully.",
+                    Data = root
                 });
             }
             catch (Exception ex)
@@ -100,7 +115,8 @@ namespace Ecommerce_APIs.Controllers
                 return StatusCode(500, new
                 {
                     Succeeded = false,
-                    Message = "An error occurred while fetching categories and products.",
+
+                    Message = "An error occurred while building the category subtree.",
                     Data = (string?)null
                 });
             }
@@ -195,9 +211,9 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
                 bool exists = await _context.Categories
-                             .AnyAsync(c => c.IsActive &&
-                             c.Name.Trim().ToLower() == normalizedNewName &&
-                             c.ParentCategoryId == dto.ParentCategoryId);
+                    .AnyAsync(c => c.IsActive &&
+                                   c.Name.Trim().ToLower() == normalizedNewName &&
+                                   c.ParentCategoryId == dto.ParentCategoryId);
                 if (exists)
                 {
                     return BadRequest(new
@@ -211,8 +227,12 @@ namespace Ecommerce_APIs.Controllers
                 {
                     Name = dto.Name.Trim(),
                     ParentCategoryId = dto.ParentCategoryId,
+                    Image = string.IsNullOrWhiteSpace(dto.Image) ? null : dto.Image.Trim(),
+                    Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim(),
+                    Icon = string.IsNullOrWhiteSpace(dto.Icon) ? null : dto.Icon.Trim(),
                     CreatedById = userId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 };
 
                 _context.Categories.Add(category);
@@ -237,7 +257,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        
+
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
         {
@@ -245,12 +265,15 @@ namespace Ecommerce_APIs.Controllers
             {
                 int userId = TokenHelper.GetUserIdFromClaims(User);
                 var category = await _context.Categories.FindAsync(id);
-                if (category == null) return NotFound(new
+                if (category == null)
                 {
-                    Succeeded = false,
-                    Message = "Category not found.",
-                    Data = (string?)null
-                });
+                    return NotFound(new
+                    {
+                        Succeeded = false,
+                        Message = "Category not found.",
+                        Data = (string?)null
+                    });
+                }
 
                 if (dto.ParentCategoryId.HasValue &&
                     !await _context.Categories.AnyAsync(c => c.Id == dto.ParentCategoryId.Value))
@@ -263,12 +286,43 @@ namespace Ecommerce_APIs.Controllers
                     });
                 }
 
-                category.Name = dto.Name;
+                string normalizedNewName = dto.Name?.Trim().ToLower();
+                if (string.IsNullOrWhiteSpace(normalizedNewName))
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "Category name is required.",
+                        Data = (string?)null
+                    });
+                }
+
+                bool duplicateExists = await _context.Categories
+                    .AnyAsync(c => c.IsActive &&
+                                   c.Id != id &&
+                                   c.Name.Trim().ToLower() == normalizedNewName &&
+                                   c.ParentCategoryId == dto.ParentCategoryId);
+
+                if (duplicateExists)
+                {
+                    return BadRequest(new
+                    {
+                        Succeeded = false,
+                        Message = "A category with the same name already exists under this parent.",
+                        Data = (string?)null
+                    });
+                }
+
+                category.Name = dto.Name.Trim();
                 category.ParentCategoryId = dto.ParentCategoryId;
+                category.Image = string.IsNullOrWhiteSpace(dto.Image) ? null : dto.Image.Trim();
+                category.Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim();
+                category.Icon = string.IsNullOrWhiteSpace(dto.Icon) ? null : dto.Icon.Trim();
                 category.UpdatedById = userId;
                 category.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
+
                 return Ok(new
                 {
                     Succeeded = true,
@@ -288,7 +342,7 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        
+
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -16,7 +16,6 @@ namespace Ecommerce_APIs.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
@@ -33,6 +32,7 @@ namespace Ecommerce_APIs.Data
         public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
 
         public DbSet<OrderReturnRequest> OrderReturnRequests { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -64,12 +64,6 @@ namespace Ecommerce_APIs.Data
                 .HasForeignKey(c => c.UpdatedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // For ading the images to the Product
-            modelBuilder.Entity<ProductImage>()
-                 .HasOne(pi => pi.Product)
-                 .WithMany(p => p.ProductImages)
-                 .HasForeignKey(pi => pi.ProductId)
-                 .OnDelete(DeleteBehavior.Cascade);
 
             // for adding oder items to the order
             modelBuilder.Entity<Order>()
