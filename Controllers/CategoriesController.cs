@@ -54,6 +54,7 @@ namespace Ecommerce_APIs.Controllers
 
 
         [HttpGet("list")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
         {
             var categories = await _context.Categories
