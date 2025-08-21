@@ -29,9 +29,9 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var categories = await _context.Categories
-                    .Include(c => c.ParentCategory)
-                    .Include(c => c.SubCategories)
                     .Where(c => c.IsActive)
+                    .Include(c => c.ParentCategory)
+                    .Include(c => c.SubCategories.Where(sc => sc.IsActive))
                     .ToListAsync();
 
                 return Ok(new
