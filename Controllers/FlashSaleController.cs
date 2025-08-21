@@ -46,6 +46,7 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpGet("active")]
+        [AllowAnonymous]
         public IActionResult GetActiveFlashSales()
         {
             try{
@@ -54,7 +55,12 @@ namespace Ecommerce_APIs.Controllers
                     .Where(fs => fs.IsActive)
                     .ToList();
 
-                return Ok(sales);
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Flash sales retrieved successfully.",
+                    Data = sales
+                });
             }
             catch (Exception ex)
             {
