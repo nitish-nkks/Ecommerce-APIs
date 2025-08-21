@@ -41,7 +41,11 @@ namespace Ecommerce_APIs.Controllers
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new { message = "An error occurred while creating the flash sale." });
+                return StatusCode(500, new {
+                    message = "An error occurred while creating the flash sale.",
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
             }
         }
 

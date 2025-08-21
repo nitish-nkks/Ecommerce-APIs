@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Linq.Dynamic.Core;
+using System.Threading.Tasks;
+using AutoMapper;
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Helpers;
 using Ecommerce_APIs.Helpers.Extensions;
@@ -217,6 +219,36 @@ namespace Ecommerce_APIs.Controllers
                 return StatusCode(500, new { success = false, message = "An error occurred", data = ex.Message });
             }
         }
+
+        [HttpGet("all")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllProducts()
+        {
+            try
+            {
+                var products = await _context.Products
+                    .Where(p => p.IsActive)
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Products fetched successfully.",
+                    Data = products
+                });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while fetching products.",
+                    Data = (string?)null
+                });
+            }
+        }
+
     }
 }
 

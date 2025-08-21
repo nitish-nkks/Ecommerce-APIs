@@ -359,7 +359,7 @@ namespace Ecommerce_APIs.Controllers
             {
                 var categories = await _context.Categories
                     .Include(c => c.SubCategories)
-                        .ThenInclude(sc => sc.Products)
+                    .ThenInclude(sc => sc.Products)
                     .Include(c => c.Products)
                     .Select(c => new
                     {
