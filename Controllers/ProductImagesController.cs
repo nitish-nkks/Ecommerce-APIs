@@ -28,9 +28,6 @@ namespace Ecommerce_APIs.Controllers
             _env = env;
         }
 
-        /// <summary>
-        /// Upload an image file for a product (multipart/form-data)
-        /// </summary>
         [HttpPost("upload")]
         public async Task<IActionResult> UploadProductImage([FromForm] ProductImageCreateDto dto)
         {
@@ -43,13 +40,11 @@ namespace Ecommerce_APIs.Controllers
                 if (product == null)
                     return NotFound(new { Succeeded = false, Message = "Product not found", Data = (object?)null });
 
-                // prepare folders
                 var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var uploadsFolder = Path.Combine(webRootPath, "uploads", "products");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                // create unique file name and save
                 var ext = Path.GetExtension(dto.Image.FileName);
                 var uniqueFileName = Guid.NewGuid().ToString("N") + ext;
                 var filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -59,10 +54,8 @@ namespace Ecommerce_APIs.Controllers
                     await dto.Image.CopyToAsync(stream);
                 }
 
-                // create URL relative to webroot (leading slash)
                 var imageUrl = $"/uploads/products/{uniqueFileName}";
 
-                // if caller requested this to be primary, clear existing primary for the product
                 if (dto.IsPrimary)
                 {
                     var existingPrimary = await _context.ProductImages
@@ -105,9 +98,6 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        /// <summary>
-        /// Get active images for a product
-        /// </summary>
         [HttpGet("{productId}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetImagesForProduct(int productId)
@@ -135,9 +125,6 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        /// <summary>
-        /// Soft-delete an image and remove file from disk
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteImage(int id)
         {
@@ -146,7 +133,6 @@ namespace Ecommerce_APIs.Controllers
                 var image = await _context.ProductImages.FindAsync(id);
                 if (image == null) return NotFound(new { Succeeded = false, Message = "Image not found", Data = (object?)null });
 
-                // remove file from disk if exists
                 if (!string.IsNullOrWhiteSpace(image.ImageUrl))
                 {
                     var relativePath = image.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
@@ -158,7 +144,6 @@ namespace Ecommerce_APIs.Controllers
                         try { System.IO.File.Delete(filePath); }
                         catch
                         {
-                            // non-fatal: log to Sentry but continue with soft-delete
                             SentrySdk.CaptureMessage($"Failed to delete file {filePath}");
                         }
                     }

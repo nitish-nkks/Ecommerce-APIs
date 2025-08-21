@@ -12,6 +12,8 @@ namespace Ecommerce_APIs.Models.DTOs.FlashSaleDtos
 
         [Column(TypeName = "datetime(3)")]
         public DateTime EndDate { get; set; }
+        public DayOfWeek? SaleDay { get; set; }
+
     }
 
 }

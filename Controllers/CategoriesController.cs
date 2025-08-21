@@ -29,8 +29,9 @@ namespace Ecommerce_APIs.Controllers
             try
             {
                 var categories = await _context.Categories
+                    .Where(c => c.IsActive)
                     .Include(c => c.ParentCategory)
-                    .Include(c => c.SubCategories)
+                    .Include(c => c.SubCategories.Where(sc => sc.IsActive))
                     .ToListAsync();
 
                 return Ok(new
@@ -193,9 +194,9 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        
+
         [HttpPost]
-        public async Task<IActionResult> AddCategory(AddCategoryDto dto)
+        public async Task<IActionResult> AddCategory([FromForm] AddCategoryDto dto)
         {
             try
             {
@@ -204,12 +205,7 @@ namespace Ecommerce_APIs.Controllers
                 string normalizedNewName = dto.Name?.Trim().ToLower();
                 if (string.IsNullOrWhiteSpace(normalizedNewName))
                 {
-                    return BadRequest(new
-                    {
-                        Succeeded = false,
-                        Message = "Category name is required.",
-                        Data = (string?)null
-                    });
+                    return BadRequest(new { Succeeded = false, Message = "Category name is required." });
                 }
                 bool exists = await _context.Categories
                     .AnyAsync(c => c.IsActive &&
@@ -217,20 +213,42 @@ namespace Ecommerce_APIs.Controllers
                                    c.ParentCategoryId == dto.ParentCategoryId);
                 if (exists)
                 {
-                    return BadRequest(new
-                    {
-                        Succeeded = false,
-                        Message = "A category with the same name already exists.",
-                        Data = (string?)null
-                    });
+                    return BadRequest(new { Succeeded = false, Message = "A category with the same name already exists." });
                 }
+
+                string imageUrl = null, iconUrl = null;
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/categories");
+                if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
+
+                if (dto.Image != null)
+                {
+                    var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await dto.Image.CopyToAsync(stream);
+                    }
+                    imageUrl = "/uploads/categories/" + fileName;
+                }
+
+                if (dto.Icon != null)
+                {
+                    var fileName = Guid.NewGuid() + Path.GetExtension(dto.Icon.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await dto.Icon.CopyToAsync(stream);
+                    }
+                    iconUrl = "/uploads/categories/" + fileName;
+                }
+
                 var category = new Category
                 {
                     Name = dto.Name.Trim(),
                     ParentCategoryId = dto.ParentCategoryId,
-                    Image = string.IsNullOrWhiteSpace(dto.Image) ? null : dto.Image.Trim(),
+                    Image = imageUrl,
+                    Icon = iconUrl,
                     Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim(),
-                    Icon = string.IsNullOrWhiteSpace(dto.Icon) ? null : dto.Icon.Trim(),
                     CreatedById = userId,
                     CreatedAt = DateTime.Now,
                     IsActive = true
@@ -239,22 +257,12 @@ namespace Ecommerce_APIs.Controllers
                 _context.Categories.Add(category);
                 await _context.SaveChangesAsync();
 
-                return Ok(new
-                {
-                    Succeeded = true,
-                    Message = "Category added successfully.",
-                    Data = category
-                });
+                return Ok(new { Succeeded = true, Message = "Category added successfully.", Data = category });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new
-                {
-                    Succeeded = false,
-                    Message = "An error occurred while adding the category.",
-                    Data = (string?)null
-                });
+                return StatusCode(500, new { Succeeded = false, Message = "An error occurred while adding the category." });
             }
         }
 
