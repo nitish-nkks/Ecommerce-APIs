@@ -54,10 +54,48 @@ namespace Ecommerce_APIs.Controllers
         public IActionResult GetActiveFlashSales()
         {
             try{
+
+                var today = DateTime.Today;
+                var now = DateTime.Now.TimeOfDay; 
+                var currentDay = (int)DateTime.Now.DayOfWeek;
+
                 var sales = _context.FlashSales
                     .Include(fs => fs.Product)
-                    .Where(fs => fs.IsActive)
+                        .ThenInclude(p => p.Category)
+                    .Where(fs => fs.IsActive &&
+                        (
+                            (fs.StartDate <= today && fs.EndDate >= today)
+                            ||
+                            (fs.SaleDay != null && fs.StartTime.HasValue && fs.EndTime.HasValue &&
+                             (int)fs.SaleDay.Value == currentDay &&
+                             fs.StartTime.Value <= now &&
+                             fs.EndTime.Value >= now)
+                       )
+                    )
+                    .Select(fs => new
+                    {
+                        Id = fs.Id,
+                        fs.ProductId,
+                        Name = fs.Product.Name,
+                        ParentCategory = fs.Product.Category.ParentCategoryId == null
+                            ? fs.Product.Category.Name
+                            : (fs.Product.Category.ParentCategory.ParentCategoryId == null)
+                                ? fs.Product.Category.ParentCategory.Name
+                                : fs.Product.Category.ParentCategory.ParentCategory.Name,
+                        Image = fs.Product.Image,
+                        Price = fs.Product.Price,
+                        OriginalPrice = fs.Product.Price,
+                        SalePrice = fs.Product.Price - (fs.Product.Price * fs.DiscountPercent / 100),
+                        Discount = fs.DiscountPercent,
+                        Stock = fs.Product.StockQuantity,
+                        fs.SaleDay,
+                        fs.StartDate,
+                        fs.EndDate,
+                        fs.StartTime,
+                        fs.EndTime                      
+                    })
                     .ToList();
+
 
                 return Ok(new
                 {

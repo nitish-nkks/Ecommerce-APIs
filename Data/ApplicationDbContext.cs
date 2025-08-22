@@ -110,8 +110,7 @@ namespace Ecommerce_APIs.Data
             modelBuilder.Entity<FlashSale>()
                 .HasOne(fs => fs.Product)
                 .WithMany()
-                .HasForeignKey(fs => fs.ProductId);
-
+                .HasForeignKey(fs => fs.ProductId);  
 
             modelBuilder.Entity<Customer>()
                 .Ignore(c => c.CartItems);
