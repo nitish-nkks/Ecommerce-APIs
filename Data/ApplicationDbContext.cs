@@ -111,7 +111,13 @@ namespace Ecommerce_APIs.Data
                 .HasOne(fs => fs.Product)
                 .WithMany()
                 .HasForeignKey(fs => fs.ProductId);
-
+            
+            modelBuilder.Entity<FlashSale>()
+               .Property(fs => fs.SaleDay)
+               .HasConversion(
+                   v => v.HasValue ? v.Value.ToString() : null,   // C# → DB (string)
+                   v => string.IsNullOrEmpty(v) ? null : Enum.Parse<DayOfWeek>(v)  // DB → C#
+               );
 
             modelBuilder.Entity<Customer>()
                 .Ignore(c => c.CartItems);
