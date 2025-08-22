@@ -366,6 +366,8 @@ namespace Ecommerce_APIs.Controllers
                     {
                         CategoryId = c.Id,
                         CategoryName = c.Name,
+                        c.Image,
+                        c.Description,
                         c.ParentCategoryId,
                         Products = c.Products.Select(p => new
                         {
