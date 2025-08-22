@@ -50,11 +50,31 @@ namespace Ecommerce_APIs.Controllers
         public IActionResult GetActiveFlashSales()
         {
             try{
-                var sales = _context.FlashSales
-                    .Include(fs => fs.Product)
-                    .Where(fs => fs.IsActive)
-                    .ToList();
 
+                var sales = _context.FlashSales
+                               .Include(fs => fs.Product)
+                               .ThenInclude(p => p.Category)
+                               .Where(fs => fs.IsActive)
+                               .Select(fs => new
+                               {
+                                   Id = fs.Id,
+                                   fs.ProductId,
+                                   Name = fs.Product.Name,
+                                   ParentCategory = fs.Product.Category.ParentCategoryId == null
+                                       ? fs.Product.Category.Name
+                                       : (fs.Product.Category.ParentCategory.ParentCategoryId == null) ? fs.Product.Category.ParentCategory.Name : fs.Product.Category.ParentCategory.ParentCategory.Name,
+                                   Image = fs.Product.Image,
+                                   Price = fs.Product.Price,
+                                   OriginalPrice = fs.Product.Price,
+                                   SalePrice = fs.Product.Price - (fs.Product.Price * fs.DiscountPercent / 100),
+                                   Discount = fs.DiscountPercent,
+                                   Stock = fs.Product.StockQuantity,
+                                   fs.SaleDay,
+                                   fs.StartDate,
+                                   fs.EndDate
+                               })
+                               .ToList();
+                          
                 return Ok(new
                 {
                     Succeeded = true,
