@@ -17,6 +17,8 @@ namespace Ecommerce_APIs.Models.Entites
         [Column(TypeName = "datetime(3)")]
         public DateTime? EndDate { get; set; }
         public DayOfWeek? SaleDay { get; set; }
+        public TimeSpan? StartTime { get; set; }  
+        public TimeSpan? EndTime { get; set; }
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
 
