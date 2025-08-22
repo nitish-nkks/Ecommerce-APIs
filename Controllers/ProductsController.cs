@@ -153,50 +153,53 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var product = await _context.Products.FindAsync(id);
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
                 if (product == null)
                     return NotFound(new { success = false, message = "Product not found" });
 
-                bool exists = await _context.Products
-                                     .AnyAsync(p => p.IsActive &&
-                                                    p.Name.Trim().ToLower() == dto.Name.Trim().ToLower() &&
-                                                    p.CategoryId == dto.CategoryId &&
-                                                    p.Id != id);
-                if (exists)
+                _context.Entry(product).Property(p => p.Name).IsModified = false;
+
+                if (dto.Description != null) product.Description = dto.Description;
+                if (dto.Price.HasValue)
                 {
-                    return BadRequest(new
-                    {
-                        Succeeded = false,
-                        Message = "A product with the same name and category already exists.",
-                        Data = (string?)null
-                    });
+                    if (dto.Price < 0) return BadRequest(new { success = false, message = "Price cannot be negative" });
+                    product.Price = dto.Price.Value;
                 }
+                if (dto.StockQuantity.HasValue)
+                {
+                    if (dto.StockQuantity < 0) return BadRequest(new { success = false, message = "Stock quantity cannot be negative" });
+                    product.StockQuantity = dto.StockQuantity.Value;
+                }
+                if (dto.DiscountPercentage.HasValue)
+                {
+                    if (dto.DiscountPercentage < 0 || dto.DiscountPercentage > 100)
+                        return BadRequest(new { success = false, message = "Discount must be between 0 and 100" });
+                    product.DiscountPercentage = dto.DiscountPercentage.Value;
+                }
+                if (dto.MinOrderQuantity.HasValue) product.MinOrderQuantity = dto.MinOrderQuantity.Value;
+                if (dto.IsFeatured.HasValue) product.IsFeatured = dto.IsFeatured.Value;
+                if (dto.IsNewProduct.HasValue) product.IsNewProduct = dto.IsNewProduct.Value;
+                if (dto.IsBestSeller.HasValue) product.IsBestSeller = dto.IsBestSeller.Value;
 
-                if (!await _context.Categories.AnyAsync(c => c.Id == dto.CategoryId))
-                    return BadRequest(new { success = false, message = "Invalid category ID" });
-
-                mapper.Map(dto, product);
                 if (dto.ProductImages != null)
-                {
-                    product.Image = string.Join(",", dto.ProductImages);
-                }
-                product.IsFeatured = dto.IsFeatured;
-                product.IsNewProduct = dto.IsNewProduct;
-                product.IsBestSeller = dto.IsBestSeller;
-                product.DiscountPercentage = dto.DiscountPercentage;
+                    product.Image = dto.ProductImages.Any()
+                                    ? string.Join(",", dto.ProductImages)
+                                    : product.Image;
+
                 product.UpdatedBy = TokenHelper.GetUserIdFromClaims(User);
-                product.UpdatedAt = DateTime.Now;
+                product.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { success = true, message = "Product updated" });
+                return Ok(new { success = true, message = "Product updated successfully" });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new { success = false, message = "An error occurred", data = ex.Message });
+                return StatusCode(500, new { success = false, message = "Internal server error", data = ex.Message });
             }
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
