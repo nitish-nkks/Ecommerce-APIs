@@ -88,6 +88,7 @@ namespace Ecommerce_APIs.Controllers
                         SalePrice = fs.Product.Price - (fs.Product.Price * fs.DiscountPercent / 100),
                         Discount = fs.DiscountPercent,
                         Stock = fs.Product.StockQuantity,
+                        MinOrderQuantity = fs.Product.MinOrderQuantity,
                         fs.SaleDay,
                         fs.StartDate,
                         fs.EndDate,
