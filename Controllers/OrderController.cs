@@ -46,8 +46,17 @@ namespace Ecommerce_APIs.Controllers
 
                 if (!cartItems.Any())
                     return BadRequest(new { success = false, message = "Cart is empty. Cannot create order." });
+                
+                var groupedCartItems = cartItems
+                    .GroupBy(c => c.ProductId)
+                    .Select(g => new
+                    {
+                        Product = g.First().Product,   
+                        Quantity = g.Sum(x => x.Quantity)
+                    })
+                    .ToList();
 
-                foreach (var item in cartItems)
+                foreach (var item in groupedCartItems)
                 {
                     var product = item.Product;
                     if (item.Quantity < product.MinOrderQuantity)
