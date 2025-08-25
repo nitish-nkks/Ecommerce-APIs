@@ -87,7 +87,8 @@ namespace Ecommerce_APIs.Controllers
                     Id = ci.Id,
                     ProductId = ci.ProductId,
                     ProductName = ci.Product.Name,
-                    UnitPrice = ci.Product.Price,
+                    Price = ci.Product.Price,
+                    Discount = ci.Product.DiscountPercentage,
                     Quantity = ci.Quantity
                 }).ToList();
 
