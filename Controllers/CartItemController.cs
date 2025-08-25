@@ -93,7 +93,7 @@ namespace Ecommerce_APIs.Controllers
                                   })
                                   .Select(g => new CartItemResponseDto
                                   {
-                                      ProductId = g.Key.ProductId,
+                                      Id = g.Key.ProductId,
                                       Name = g.Key.Name,
                                       Price = g.Key.Price,
                                       Image = g.Key.Image,
