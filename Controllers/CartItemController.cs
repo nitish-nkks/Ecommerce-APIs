@@ -82,15 +82,25 @@ namespace Ecommerce_APIs.Controllers
                         //.ThenInclude(p => p.Image)
                     .ToListAsync();
 
-                var response = cartItems.Select(ci => new CartItemResponseDto
-                {
-                    Id = ci.Id,
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product.Name,
-                    Price = ci.Product.Price,
-                    Discount = ci.Product.DiscountPercentage,
-                    Quantity = ci.Quantity
-                }).ToList();
+                var response = cartItems
+                                  .GroupBy(ci => new
+                                  {
+                                      ci.ProductId,
+                                      ci.Product.Name,
+                                      ci.Product.Price,
+                                      ci.Product.Image,
+                                      ci.Product.DiscountPercentage
+                                  })
+                                  .Select(g => new CartItemResponseDto
+                                  {
+                                      ProductId = g.Key.ProductId,
+                                      Name = g.Key.Name,
+                                      Price = g.Key.Price,
+                                      Image = g.Key.Image,
+                                      Discount = g.Key.DiscountPercentage,
+                                      Quantity = g.Sum(ci => ci.Quantity)
+                                  })
+                                  .ToList();
 
                 return Ok(new { success = true, data = response });
             }
