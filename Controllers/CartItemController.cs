@@ -79,7 +79,7 @@ namespace Ecommerce_APIs.Controllers
                 var cartItems = await dbContext.CartItems
                     .Where(ci => ci.UserId == userId && ci.IsActive)
                     .Include(ci => ci.Product)
-                        .ThenInclude(p => p.Image)
+                        //.ThenInclude(p => p.Image)
                     .ToListAsync();
 
                 var response = cartItems.Select(ci => new CartItemResponseDto
