@@ -41,7 +41,7 @@ namespace Ecommerce_APIs.Controllers
 
                 var cartItems = await dbContext.CartItems
                     .Include(c => c.Product)
-                    .Where(c => c.UserId == userId.Value && c.UserType == "Customer")
+                    .Where(c => c.UserId == userId.Value && c.UserType == "Customer" && c.IsActive)
                     .ToListAsync();
 
                 if (!cartItems.Any())
