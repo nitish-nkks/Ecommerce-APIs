@@ -18,5 +18,5 @@ namespace Ecommerce_APIs.Models.DTOs.FlashSaleDtos
         public TimeSpan? EndTime { get; set; }
 
     }
-
+  
 }

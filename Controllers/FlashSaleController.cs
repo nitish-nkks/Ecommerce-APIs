@@ -28,26 +28,31 @@ namespace Ecommerce_APIs.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateFlashSale([FromBody] FlashSaleDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var flashSale = _mapper.Map<FlashSale>(dto);
+                var flashSale = _mapper.Map<FlashSale>(dto);    
                 flashSale.CreatedBy = GetCurrentUserId();
 
                 _context.FlashSales.Add(flashSale);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Flash sale created successfully." });
+                return Ok(new { message = "Flash sale created successfully.", data = flashSale });
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-                return StatusCode(500, new {
+                return StatusCode(500, new
+                {
                     message = "An error occurred while creating the flash sale.",
                     error = ex.Message,
                     inner = ex.InnerException?.Message
                 });
             }
         }
+
 
         [HttpGet("active")]
         [AllowAnonymous]
@@ -116,19 +121,153 @@ namespace Ecommerce_APIs.Controllers
         [HttpPatch("{id}/toggle-active")]
         public async Task<IActionResult> ToggleFlashSaleActiveStatus(int id)
         {
-            var flashSale = await _context.FlashSales.FindAsync(id);
-            if (flashSale == null) return NotFound(new { message = "Flash sale not found." });
+            try
+            {
+                var flashSale = await _context.FlashSales.FindAsync(id);
+                if (flashSale == null)
+                    return NotFound(new { message = "Flash sale not found." });
 
-            flashSale.IsActive = !flashSale.IsActive;
-            flashSale.UpdatedAt = DateTime.Now;
-            flashSale.UpdatedBy = GetCurrentUserId();
+                flashSale.IsActive = !flashSale.IsActive;
+                flashSale.UpdatedAt = DateTime.Now;
+                flashSale.UpdatedBy = GetCurrentUserId();
 
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Flash sale status updated.", isActive = flashSale.IsActive });
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Flash sale status updated successfully.",
+                    isActive = flashSale.IsActive
+                });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while updating flash sale status.",
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
+            }
         }
 
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateFlashSale(int id, [FromBody] FlashSaleDto dto)
+        {
+            try
+            {
+                var flashSale = await _context.FlashSales.FindAsync(id);
+                if (flashSale == null)
+                    return NotFound(new { message = "Flash sale not found." });
 
+                // Update fields
+                flashSale.SaleName = dto.SaleName;
+                flashSale.ProductId = dto.ProductId;
+                flashSale.DiscountPercent = dto.DiscountPercent;
+                flashSale.StartDate = dto.StartDate;
+                flashSale.EndDate = dto.EndDate;
+                flashSale.SaleDay = dto.SaleDay;
+                flashSale.StartTime = dto.StartTime;
+                flashSale.EndTime = dto.EndTime;
+                flashSale.UpdatedAt = DateTime.Now;
+                flashSale.UpdatedBy = GetCurrentUserId();
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Flash sale updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while updating the flash sale.",
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFlashSale(int id)
+        {
+            try
+            {
+                var flashSale = await _context.FlashSales.FindAsync(id);
+                if (flashSale == null)
+                    return NotFound(new { message = "Flash sale not found." });
+
+                flashSale.IsActive = false;
+                flashSale.UpdatedAt = DateTime.Now;
+                flashSale.UpdatedBy = GetCurrentUserId();
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Flash sale deleted (deactivated) successfully." });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while deleting the flash sale.",
+                    error = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
+            }
+        }
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllFlashSales()
+        {
+            try
+            {
+                var flashSales = await _context.FlashSales
+                    .Include(fs => fs.Product)
+                        .ThenInclude(p => p.Category)
+                    .Select(fs => new
+                    {
+                        Id = fs.Id,
+                        fs.ProductId,
+                        ProductName = fs.Product.Name,
+                        ParentCategory = fs.Product.Category.ParentCategoryId == null
+                            ? fs.Product.Category.Name
+                            : (fs.Product.Category.ParentCategory.ParentCategoryId == null)
+                                ? fs.Product.Category.ParentCategory.Name
+                                : fs.Product.Category.ParentCategory.ParentCategory.Name,
+                        fs.SaleName,
+                        fs.DiscountPercent,
+                        fs.IsActive,
+                        fs.StartDate,
+                        fs.EndDate,
+                        fs.StartTime,
+                        fs.EndTime,
+                        fs.CreatedAt,
+                        fs.UpdatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = flashSales.Any() ? "All flash sales retrieved successfully." : "No flash sales found.",
+                    TotalRecords = flashSales.Count,
+                    Data = flashSales
+                });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while retrieving all flash sales.",
+                    Error = ex.Message,
+                    Inner = ex.InnerException?.Message
+                });
+            }
+        }
         private int? GetCurrentUserId()
         {
             if (User?.Identity?.IsAuthenticated == true)
