@@ -357,7 +357,7 @@ namespace Ecommerce_APIs.Controllers
         {
             try
             {
-                var categories = await _context.Categories
+                var categories = await _context.Categories                  
                     .Include(c => c.SubCategories)
                         .ThenInclude(sc => sc.Products)
                     .Include(c => c.Products)
@@ -370,7 +370,7 @@ namespace Ecommerce_APIs.Controllers
                         c.Description,
                         c.ParentCategoryId,
                         c.Icon,
-                        Products = c.Products.Select(p => new
+                        Products = c.Products.Where(pro => pro.IsActive).Select(p => new
                         {
                             ProductId = p.Id,
                             ProductName = p.Name,
