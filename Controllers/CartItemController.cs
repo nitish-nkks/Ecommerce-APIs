@@ -89,7 +89,9 @@ namespace Ecommerce_APIs.Controllers
                                       ci.Product.Name,
                                       ci.Product.Price,
                                       ci.Product.Image,
-                                      ci.Product.DiscountPercentage
+                                      ci.Product.DiscountPercentage,
+                                      ci.Product.MinOrderQuantity,
+                                      ci.Product.StockQuantity
                                   })
                                   .Select(g => new CartItemResponseDto
                                   {
@@ -97,6 +99,8 @@ namespace Ecommerce_APIs.Controllers
                                       Name = g.Key.Name,
                                       Price = g.Key.Price,
                                       Image = g.Key.Image,
+                                      MinOrderQuantity = g.Key.MinOrderQuantity,
+                                      Stock = g.Key.StockQuantity,
                                       Discount = g.Key.DiscountPercentage,
                                       Quantity = g.Sum(ci => ci.Quantity)
                                   })

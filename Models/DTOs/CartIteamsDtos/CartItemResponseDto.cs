@@ -7,7 +7,9 @@
         public string? Image { get; set; }  
         public decimal Price { get; set; }
         public decimal Discount { get; set; }
-        public int Quantity { get; set; }         
+        public int Quantity { get; set; }
+        public int MinOrderQuantity { get; set; }
+        public int Stock { get; set; }
         public decimal TotalPrice => Quantity * Price;
     }
 
