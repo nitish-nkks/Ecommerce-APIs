@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Helpers;
+using Ecommerce_APIs.Helpers.Extensions;
+using Ecommerce_APIs.Models.DTOs.GlobalFilterDtos;
 using Ecommerce_APIs.Models.DTOs.InternalUserDtos;
 using Ecommerce_APIs.Models.Entites;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -202,5 +205,49 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllInternalUsers([FromQuery] GlobalFilterDto filter)
+        {
+            try
+            {
+                var query = _context.InternalUsers
+                    .Where(u => u.IsActive)
+                    .OrderByDescending(u => u.CreatedAt);
+
+                var (items, totalCount) = await query.ToPagedListAsync(filter);
+
+                var result = items.Select(u => new
+                {
+                    u.EmployeeId,
+                    u.UserName,
+                    u.Email,
+                    Role = u.Role.ToString(),
+                    u.Designation,
+                    u.Department,
+                    u.IsActive,
+                    u.CreatedAt,
+                    u.LastLoginAt
+                }).ToList();
+
+                return Ok(new
+                {
+                    Succeeded = true,
+                    Message = "Active internal users fetched successfully",
+                    TotalCount = totalCount,
+                    Page = filter.Page,
+                    PageSize = filter.PageSize,
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Succeeded = false,
+                    Message = "An error occurred while fetching internal users.",
+                    Error = ex.Message
+                });
+            }
+        }
     }
 }

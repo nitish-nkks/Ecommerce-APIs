@@ -22,6 +22,8 @@ namespace Ecommerce_APIs.Models.DTOs.ProductDtos
         [Required]
         public int MinOrderQuantity { get; set; }
         public List<string> ProductImages { get; set; } = new List<string>();
-
+        public bool IsFeatured { get; set; }
+        public bool IsNewProduct { get; set; }
+        public bool IsBestSeller { get; set; }
     }
 }

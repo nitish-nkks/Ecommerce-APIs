@@ -5,7 +5,7 @@ namespace Ecommerce_APIs.Models.Entites
     public class FlashSale
     {
         public int Id { get; set; }
-
+        public string SaleName { get; set; }
         public int ProductId { get; set; }
         public Product Product { get; set; }
 

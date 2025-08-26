@@ -4,6 +4,7 @@ namespace Ecommerce_APIs.Models.DTOs.FlashSaleDtos
 {
     public class FlashSaleDto
     {
+        public string SaleName { get; set; }
         public int ProductId { get; set; }
         public decimal DiscountPercent { get; set; }
 

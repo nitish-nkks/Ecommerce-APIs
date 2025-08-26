@@ -1,10 +1,12 @@
 ﻿using Ecommerce_APIs.Data;
 using Ecommerce_APIs.Helpers;
+using Ecommerce_APIs.Models.DTOs.GlobalFilterDtos;
 using Ecommerce_APIs.Models.DTOs.OrderDtos;
 using Ecommerce_APIs.Models.Entites;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Ecommerce_APIs.Controllers
 {
@@ -317,15 +319,36 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllOrders()
+        public async Task<IActionResult> GetAllOrders([FromQuery] GlobalFilterDto filter)
         {
             try
             {
-                var orders = await dbContext.Orders
+                var query = dbContext.Orders
                     .Where(o => o.IsActive)
                     .Include(o => o.Customer)
                     .Include(o => o.OrderItems)
                         .ThenInclude(oi => oi.Product)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(filter.SearchTerm))
+                {
+                    query = query.Where(o =>
+                        o.Customer.FirstName.Contains(filter.SearchTerm) ||
+                        o.Customer.LastName.Contains(filter.SearchTerm) ||
+                        o.Customer.Email.Contains(filter.SearchTerm));
+                }
+
+                query = filter.SortBy?.ToLower() switch
+                {
+                    "status" => filter.Descending ? query.OrderByDescending(o => o.Status) : query.OrderBy(o => o.Status),
+                    "totalamount" => filter.Descending ? query.OrderByDescending(o => o.TotalAmount) : query.OrderBy(o => o.TotalAmount),
+                    "createdat" or _ => filter.Descending ? query.OrderByDescending(o => o.CreatedAt) : query.OrderBy(o => o.CreatedAt)
+                };
+
+                var totalCount = await query.CountAsync();
+                var orders = await query
+                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
                     .ToListAsync();
 
                 var result = orders.Select(o => new
@@ -334,6 +357,7 @@ namespace Ecommerce_APIs.Controllers
                     o.CreatedAt,
                     o.Status,
                     o.TotalAmount,
+                    o.ShippingAddress,
                     User = new
                     {
                         o.Customer.Id,
@@ -352,7 +376,14 @@ namespace Ecommerce_APIs.Controllers
                     })
                 });
 
-                return Ok(new { success = true, data = result });
+                return Ok(new
+                {
+                    success = true,
+                    totalCount,
+                    page = filter.Page,
+                    pageSize = filter.PageSize,
+                    data = result
+                });
             }
             catch (Exception ex)
             {

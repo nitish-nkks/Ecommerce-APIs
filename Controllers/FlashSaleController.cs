@@ -89,6 +89,7 @@ namespace Ecommerce_APIs.Controllers
                         Discount = fs.DiscountPercent,
                         Stock = fs.Product.StockQuantity,
                         fs.SaleDay,
+                        fs.SaleName,
                         fs.StartDate,
                         fs.EndDate,
                         fs.StartTime,
