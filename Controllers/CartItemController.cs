@@ -111,30 +111,44 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateQuantity(int id, [FromBody] int quantity)
+        [HttpPut]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateQuantity(CreateCartItemDto dto)
         {
             try
             {
+                if (dto.Quantity <= 0)
+                {
+                    return BadRequest(new { success = false, message = "Quantity must be greater than 0" });
+                }
+
+                var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
+
+                if (userId == null && string.IsNullOrEmpty(dto.GuestId))
+                    return BadRequest(new { success = false, message = "Either a logged-in user or GuestId must be provided." });
+
                 var cartItem = await dbContext.CartItems
-                    .Where(c => c.Id == id && c.IsActive) 
-                    .FirstOrDefaultAsync();
+                                        .Where(c =>
+                                            c.ProductId == dto.ProductId &&
+                                            c.IsActive &&
+                                            (
+                                                (!string.IsNullOrEmpty(dto.GuestId) && c.GuestId == dto.GuestId) ||
+                                                (userId != null && c.UserId == userId.Value)
+                                            )
+                                        )
+                                        .FirstOrDefaultAsync();
 
                 if (cartItem == null)
                 {
                     return NotFound(new { success = false, message = "Cart item not found" });
                 }
 
-                cartItem.Quantity = quantity;
+                cartItem.Quantity = dto.Quantity;
 
-                if (quantity <= 0)
-                {
-                    return BadRequest(new { success = false, message = "Quantity must be greater than 0" });
-                }
 
                 await dbContext.SaveChangesAsync();
 
-                return Ok(new { success = true, message = "Quantity updated" });
+                return Ok(new { success = true, message = "Product Quantity updated" });
             }
             catch (Exception ex)
             {
@@ -144,11 +158,24 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveItem(int id)
+        [AllowAnonymous]
+        public async Task<IActionResult> RemoveItem(int id, [FromQuery] string? guestId)
         {
             try
             {
-                var cartItem = await dbContext.CartItems.FindAsync(id);
+                var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
+
+                if (userId == null && string.IsNullOrEmpty(guestId))
+                {
+                    return BadRequest(new { success = false, message = "Either a logged-in user or GuestId must be provided." });
+                }
+
+                var cartItem = await dbContext.CartItems
+                    .Where(c => c.ProductId == id
+                             && c.IsActive
+                             && ((guestId != null && c.GuestId == guestId) || (userId != null && c.UserId == userId)))
+                    .FirstOrDefaultAsync();
+
                 if (cartItem == null)
                 {
                     return NotFound(new { success = false, message = "Cart item does not exist" });
@@ -166,13 +193,21 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [HttpDelete("clear/{userId}")]
-        public async Task<IActionResult> ClearCart(long userId)
+        [HttpDelete("clear")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ClearCart([FromQuery] string? guestId)
         {
             try
             {
+                var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
+
+                if (userId == null && string.IsNullOrEmpty(guestId))
+                {
+                    return BadRequest(new { success = false, message = "Either a logged-in user or GuestId must be provided." });
+                }
+
                 var cartItems = await dbContext.CartItems
-                    .Where(c => c.UserId == userId && c.IsActive)
+                    .Where(c => ((guestId != null && c.GuestId == guestId) || (userId != null && c.UserId == userId)) && c.IsActive)
                     .ToListAsync();
 
                 if (!cartItems.Any())
