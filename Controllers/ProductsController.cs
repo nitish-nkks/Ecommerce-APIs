@@ -103,6 +103,7 @@ namespace Ecommerce_APIs.Controllers
                 filter ??= new GlobalFilterDto();
 
                 var (pagedProducts, totalCount) = await _context.Products
+                    .Where(p => p.IsActive)
                     .Include(p => p.Category)
                     .ApplyGlobalFilter(filter, x => x.Name, x => x.IsActive)
                     .ToPagedListAsync(filter);
