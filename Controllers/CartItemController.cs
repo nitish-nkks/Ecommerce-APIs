@@ -112,7 +112,7 @@ namespace Ecommerce_APIs.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateQuantity(int id, int quantity)
+        public async Task<IActionResult> UpdateQuantity(int id, [FromBody] int quantity)
         {
             try
             {
@@ -165,5 +165,36 @@ namespace Ecommerce_APIs.Controllers
                 return StatusCode(500, new { success = false, message = "Internal server error", error = ex.Message });
             }
         }
+
+        [HttpDelete("clear/{userId}")]
+        public async Task<IActionResult> ClearCart(long userId)
+        {
+            try
+            {
+                var cartItems = await dbContext.CartItems
+                    .Where(c => c.UserId == userId && c.IsActive)
+                    .ToListAsync();
+
+                if (!cartItems.Any())
+                {
+                    return NotFound(new { success = false, message = "Cart is already empty" });
+                }
+
+                foreach (var item in cartItems)
+                {
+                    item.IsActive = false;
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Cart cleared successfully" });
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                return StatusCode(500, new { success = false, message = "Internal server error", error = ex.Message });
+            }
+        }
+
     }
 }
