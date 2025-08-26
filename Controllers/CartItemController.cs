@@ -79,17 +79,28 @@ namespace Ecommerce_APIs.Controllers
                 var cartItems = await dbContext.CartItems
                     .Where(ci => ci.UserId == userId && ci.IsActive)
                     .Include(ci => ci.Product)
-                        .ThenInclude(p => p.Image)
+                        //.ThenInclude(p => p.Image)
                     .ToListAsync();
 
-                var response = cartItems.Select(ci => new CartItemResponseDto
-                {
-                    Id = ci.Id,
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product.Name,
-                    UnitPrice = ci.Product.Price,
-                    Quantity = ci.Quantity
-                }).ToList();
+                var response = cartItems
+                                  .GroupBy(ci => new
+                                  {
+                                      ci.ProductId,
+                                      ci.Product.Name,
+                                      ci.Product.Price,
+                                      ci.Product.Image,
+                                      ci.Product.DiscountPercentage
+                                  })
+                                  .Select(g => new CartItemResponseDto
+                                  {
+                                      Id = g.Key.ProductId,
+                                      Name = g.Key.Name,
+                                      Price = g.Key.Price,
+                                      Image = g.Key.Image,
+                                      Discount = g.Key.DiscountPercentage,
+                                      Quantity = g.Sum(ci => ci.Quantity)
+                                  })
+                                  .ToList();
 
                 return Ok(new { success = true, data = response });
             }
