@@ -134,11 +134,20 @@ namespace Ecommerce_APIs.Controllers
             }
         }
 
-        [HttpGet("user/{customerId}")]
-        public IActionResult GetOrdersByUser(int customerId)
+        [HttpGet("user")]
+        public IActionResult GetOrdersByUser()
         {
             try
             {
+                var (userId, userType) = TokenHelper.GetUserInfoFromClaims(User);
+
+                if (userId == null || !string.Equals(userType, "Customer", StringComparison.OrdinalIgnoreCase))
+                {
+                    return StatusCode(403, new { success = false, message = "Only customers are authorized to view orders." });
+                }
+
+                int customerId = userId.Value;
+
                 var orders = dbContext.Orders
                     .Where(o => o.CustomerId == customerId && o.IsActive)
                     .Include(o => o.OrderItems)
