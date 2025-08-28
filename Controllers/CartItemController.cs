@@ -56,7 +56,7 @@ namespace Ecommerce_APIs.Controllers
                 dbContext.CartItems.Add(cartItem);
                 await dbContext.SaveChangesAsync();
 
-                return Ok(new { success = true, message = "Item added to cart" });
+                return Ok(new { success = true, message = "Item added to cart", orderId = cartItem.Id });
             }
             catch (Exception ex)
             {
