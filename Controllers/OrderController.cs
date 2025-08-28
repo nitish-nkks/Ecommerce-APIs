@@ -151,16 +151,18 @@ namespace Ecommerce_APIs.Controllers
                 var response = orders.Select(order => new OrderResponseDto
                 {
                     Id = order.Id,
+                    Date = order.CreatedAt.ToString("dd-MM-yyyy"),
                     ShippingAddress = order.ShippingAddress,
                     PaymentMethod = order.PaymentMethod,
-                    TotalAmount = order.TotalAmount,
+                    Total = order.TotalAmount,
                     Status = order.Status.ToString(),
+                    TrackingNumber = order.Id.ToString("ORD0000"),
                     OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
                     {
                         ProductId = oi.ProductId,
-                        ProductName = oi.Product.Name,
+                        Name = oi.Product.Name,
                         Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice,
+                        Price = oi.UnitPrice,
                         TotalPrice = oi.TotalPrice
                     }).ToList()
                 }).ToList();
@@ -189,16 +191,18 @@ namespace Ecommerce_APIs.Controllers
                 var response = new OrderResponseDto
                 {
                     Id = order.Id,
+                    Date = order.CreatedAt.ToString("dd-MM-yyyy"),
                     ShippingAddress = order.ShippingAddress,
-                    PaymentMethod = order.PaymentMethod,
-                    TotalAmount = order.TotalAmount,
+                    PaymentMethod = order.PaymentMethod,                    
+                    Total = order.TotalAmount,
                     Status = order.Status.ToString(),
+                    TrackingNumber = order.Id.ToString("ORD0000"),
                     OrderItems = order.OrderItems.Select(oi => new OrderItemResponseDto
                     {
                         ProductId = oi.ProductId,
-                        ProductName = oi.Product.Name,
+                        Name = oi.Product.Name,
                         Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice,
+                        Price = oi.UnitPrice,
                         TotalPrice = oi.TotalPrice
                     }).ToList()
                 };
