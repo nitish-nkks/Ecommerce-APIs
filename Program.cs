@@ -101,7 +101,7 @@ builder.Services.AddCors(options =>
 {
         options.AddPolicy("AllowQA",
         policy => policy
-            .WithOrigins("http://localhost:5173", "https://abc-api-qa.abisaio.com", "https://abcadmin-qa.abisaio.com", "http://localhost:5174")
+            .WithOrigins("http://localhost:5173", "https://abc-api-qa.abisaio.com", "http://abc-bg-qa.abisaio.com", "https://abcadmin-qa.abisaio.com", "http://localhost:5174")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
